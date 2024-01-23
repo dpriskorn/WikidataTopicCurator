@@ -23,7 +23,9 @@ Use https://www.urlencoder.io/ or similar to encode the parameter.
 
 Example url that searches for parental alienation syndrome but only returns those without any P921: 127.0.0.1:5000/Q1334131?limit=50&cirrussearch=haswbstatement%3AP31%3DQ13442814%20-haswbstatement%3AP921%3DQ1334131%20%22parental%20alienation%20syndrome%22
 
-See https://www.mediawiki.org/wiki/Help:Extension:WikibaseCirrusSearch for documentation on all possible parameters.
+See https://www.mediawiki.org/wiki/Help:Extension:WikibaseCirrusSearch 
+and https://www.mediawiki.org/wiki/Help:CirrusSearch 
+for documentation on all possible parameters.
 
 ### Cirrussearch string affix
 This is appended to the cirrussearch string
