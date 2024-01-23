@@ -50,9 +50,10 @@ class Item(BaseModel):
     def publication_label(self) -> str:
         return self.publicationLabel.value or ""
 
-    def row_html(self) -> str:
+    def row_html(self, count: int) -> str:
         # todo turn some of these into links
         baserow = f"""<tr>
+                <td>{ count }</td>
                 <td>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="checkbox-{self.qid}" name="selected_qids[]" value="{ self.qid }">

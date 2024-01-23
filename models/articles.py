@@ -36,6 +36,10 @@ class Articles(BaseModel):
     def get_item_html_rows(self):
         if not self.query:
             raise ValueError("no self.query")
-        html_list = [item.row_html() for item in self.query.items]
+        count = 1
+        html_list = list()
+        for item in self.query.items:
+            html_list.append(item.row_html(count=count))
+            count =+ 1
         html = "\n".join(html_list)
         return html
