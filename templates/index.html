@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App</title>
+</head>
+<body>
+{% include 'navbar.html' %}
+
+    <h1>Topic item to work on</h1>
+    <p>This tool allows you to find all
+        articles that match a topic label but does not currently
+        have the Main subject->topic statement.</p>
+    <form method="post">
+        <label for="input_string">QID:</label>
+        <input type="text" id="input_string" name="input_string" required>
+        <button type="submit">Find articles</button>
+    </form>
+
+{% include 'footer.html' %}
+
+</body>
+</html>

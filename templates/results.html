@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Scientific Article Table</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <form action="add-main-subject" method="post">
+        <h1>Working on <b>{{ label }}</b> (<a href="{{ link }}">{{ qid }}</a>)</h1>
+        <input name="main_subject" type="hidden" value="{{ qid }}">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Add</th>
+                    <th scope="col">Label</th>
+                    <th scope="col">Instance of (P31)</th>
+                    <th scope="col">Publication</th>
+                    <th scope="col">DOI</th>
+                    <th scope="col">Link to resource</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ article_rows | safe }}
+                <!-- Add more rows as needed -->
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary mt-3">Send to QuickStatements</button>
+    </form>
+</div>
+
+{% include 'footer.html' %}
+
+</body>
+</html>
