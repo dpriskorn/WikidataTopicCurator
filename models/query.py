@@ -1,5 +1,4 @@
 import logging
-from pprint import pprint
 from typing import List, Dict
 
 from pydantic import BaseModel
@@ -25,7 +24,7 @@ class Query(BaseModel):
     def __parse_results__(self) -> None:
         # console.print(self.results)
         for item_json in self.results["results"]["bindings"]:
-            logging.debug(f"item_json:{item_json}")
+            # logging.debug(f"item_json:{item_json}")
             item = Item(
                 item=item_json["item"],
                 itemLabel=item_json.get("itemLabel", Value()),
@@ -34,7 +33,7 @@ class Query(BaseModel):
                 doi_id=item_json.get("doi_id", Value()),
                 full_resource=item_json.get("full_resource", Value()),
             )
-            pprint(item.model_dump())
+            # pprint(item.model_dump())
             self.items.append(item)
 
     def __strip_bad_chars__(self):

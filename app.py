@@ -1,11 +1,8 @@
 import logging
-import uuid
 from typing import List
+from urllib.parse import quote, unquote
 
-from urllib.parse import quote
-import requests
 from flask import Flask, render_template, request, redirect, jsonify, url_for
-from requests import post
 
 from models.articles import Articles
 
@@ -13,15 +10,42 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
 
-@app.route("/", methods=["GET"])
+
+@app.route("/", methods=["GET", "POST"])
 def index():
+    if request.method == "POST":
+        # Handle the form submission and redirect to the appropriate route
+        qid = request.form.get("qid", "")
+        limit = request.form.get("limit", "10")
+        cs = request.form.get("cs", "")
+        csa = request.form.get("csa", "")
+
+        # Validate the QID (add your validation logic here)
+        if not qid.startswith("Q") and qid[:1].isdigit():
+            return jsonify(error=invalid_format), 400
+
+        # Redirect to the get_articles route with the provided parameters
+        url = url_for('get_articles', qid=qid, limit=limit, cs=cs, csa=csa)
+        logger.debug(f"url_for: {url}")
+        return redirect(url, code=302)
     return render_template("index.html")
 
 
 @app.route("/<qid>", methods=["GET"])
 def get_articles(qid):
-    limit_param = request.args.get('limit', '10')
+    if not qid:
+        qid = request.args.get("qid", "")
+        if not qid:
+            return jsonify(f"Got no QID")
+    limit_param = request.args.get("limit", "10")
+    cs_string = unquote(request.args.get("cs", ""))
+    cs_affix = unquote(request.args.get("csa", ""))
+    if cs_string:
+        logger.debug(f"got cirrussearch string: '{cs_string}'")
+    if cs_affix:
+        logger.debug(f"got cirrussearch affix: '{cs_affix}'")
 
     try:
         limit = int(limit_param)
@@ -29,9 +53,11 @@ def get_articles(qid):
         return jsonify(error="Limit must be an integer."), 400
 
     # Call the GetArticles function with the provided string and the limit
-    articles = Articles(qid=qid, limit=limit)
+    articles = Articles(
+        qid=qid, limit=limit, cirrussearch_string=cs_string, cirrussearch_affix=cs_affix
+    )
     if not articles.is_valid_qid:
-        return jsonify(f"Not a valid QID ({qid}), format must be 'Q[0-9]+'")
+        return jsonify(invalid_format)
     articles.get_items()
     article_rows = articles.get_item_html_rows()
     return render_template(
@@ -40,6 +66,7 @@ def get_articles(qid):
         qid=qid,
         label=articles.label,
         link=f"https://www.wikidata.org/wiki/{qid}",
+        cirrussearch_url=articles.cirrussearch_url
     )
 
 

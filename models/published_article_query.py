@@ -1,33 +1,29 @@
+import logging
+
 import config
 from models.query import Query
+
+logger = logging.getLogger(__name__)
 
 
 class PublishedArticleQuery(Query):
     cirrussearch_parameters: str = ""
+    cirrussearch_string: str = ""
+    cirrussearch_affix: str = ""
 
-    def __check_we_got_everything_we_need__(self):
-        if not self.main_subject_item:
-            raise ValueError("main_subject_item was None")
-        # if not self.main_subject_item.args:
-        #     raise ValueError("main_subject_item.args was None")
-        # # if self.main_subject_item.args.limit_to_items_without_p921:
-        # #     raise Exception(
-        # #         "Limiting to items without P921 is not " "supported yet for this task."
-        # #     )
-        # if self.main_subject_item.task is None:
-        #     raise ValueError("task was None")
-        # if self.main_subject_item.task.language_code is None:
-        #     raise ValueError("task.language_code was None")
-        # if self.main_subject_item.task is None:
-        #     raise ValueError("task was None")
-        # if self.main_subject_item.task.language_code is None:
-        #     raise ValueError("task.language_code was None")
+    def __build_cirrussearch_string(self) -> None:
+        if not self.cirrussearch_string:
+            self.cirrussearch_string = f'{self.cirrussearch_parameters} \"{self.search_string}\"'
+        if self.cirrussearch_affix:
+            # Add the affix with a space in between
+            self.cirrussearch_string += f' {self.cirrussearch_affix}'
 
     def __prepare_and_build_query__(
         self,
     ):
-        self.__check_we_got_everything_we_need__()
         self.__setup_cirrussearch_params__()
+        self.__build_cirrussearch_string()
+        logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
         self.__build_query__()
 
     def __build_query__(self):
@@ -39,12 +35,28 @@ class PublishedArticleQuery(Query):
         # The replacing lines should match the similar python replacements in cleaning.py
         # The replacing with "\\\\\\\\" becomes "\\\\" after leaving python and then it works in
         # SPARQL where it becomes "\\" and thus match a single backslash
+        """disabled:
+                      # Label
+              ?item rdfs:label ?label.
+              BIND(REPLACE(LCASE(?label), ",", "") as ?label1)
+              BIND(REPLACE(?label1, ":", "") as ?label2)
+              BIND(REPLACE(?label2, ";", "") as ?label3)
+              BIND(REPLACE(?label3, "\\\\(", "") as ?label4)
+              BIND(REPLACE(?label4, "\\\\)", "") as ?label5)
+              BIND(REPLACE(?label5, "\\\\[", "") as ?label6)
+              BIND(REPLACE(?label6, "\\\\]", "") as ?label7)
+              BIND(REPLACE(?label7, "\\\\\\\\", "") as ?label8)
+              BIND(?label8 as ?cleaned_label)
+              FILTER(CONTAINS(?cleaned_label, ' {self.search_string.lower()} '@{self.lang}) ||
+                     REGEX(?cleaned_label, '.* {self.search_string.lower()}$'@{self.lang}) ||
+                     REGEX(?cleaned_label, '^{self.search_string.lower()} .*'@{self.lang}))
+        """
         self.query_string = f"""
             #{config.user_agent}
             SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id ?full_resource
             WHERE {{
               hint:Query hint:optimizer "None".
-              BIND(STR('{self.cirrussearch_parameters} \"{self.search_string}\"') as ?search_string)
+              BIND(STR('{self.cirrussearch_string}') as ?search_string)
               SERVICE wikibase:mwapi {{
                 bd:serviceParam wikibase:api "Search";
                                 wikibase:endpoint "www.wikidata.org";
@@ -62,20 +74,7 @@ class PublishedArticleQuery(Query):
               optional{{
               ?item wdt:P953 ?full_resource.
               }}
-              # Label
-              ?item rdfs:label ?label.              
-              BIND(REPLACE(LCASE(?label), ",", "") as ?label1)
-              BIND(REPLACE(?label1, ":", "") as ?label2)
-              BIND(REPLACE(?label2, ";", "") as ?label3)
-              BIND(REPLACE(?label3, "\\\\(", "") as ?label4)
-              BIND(REPLACE(?label4, "\\\\)", "") as ?label5)
-              BIND(REPLACE(?label5, "\\\\[", "") as ?label6)
-              BIND(REPLACE(?label6, "\\\\]", "") as ?label7)
-              BIND(REPLACE(?label7, "\\\\\\\\", "") as ?label8)
-              BIND(?label8 as ?cleaned_label)
-              FILTER(CONTAINS(?cleaned_label, ' {self.search_string.lower()} '@{self.lang}) ||
-                     REGEX(?cleaned_label, '.* {self.search_string.lower()}$'@{self.lang}) ||
-                     REGEX(?cleaned_label, '^{self.search_string.lower()} .*'@{self.lang}))
+              # Remove those that are subclass of this topic from the results
               MINUS {{?item wdt:P921/wdt:P279 wd:{self.main_subject_item}. }}
               MINUS {{?item wdt:P921/wdt:P279/wdt:P279 wd:{self.main_subject_item}. }}
               MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.main_subject_item}. }}
@@ -93,10 +92,12 @@ class PublishedArticleQuery(Query):
         #         f"haswbstatement:P31=Q13442814 -haswbstatement:P921"
         #     )
         # else:
-        self.cirrussearch_parameters = f"haswbstatement:P31=Q13442814 -haswbstatement:P921={self.main_subject_item}"
+        if not self.cirrussearch_parameters:
+            self.cirrussearch_parameters = f"haswbstatement:P31=Q13442814 -haswbstatement:P921={self.main_subject_item}"
 
-    def number_of_results_text(self):
-        return (
-            f"Got {len(self.items)} items from "
-            f"WDQS using the search string {self.search_string}"
-        )
+    # @property
+    # def number_of_results_text(self):
+    #     return (
+    #         f"Got {len(self.items)} items from "
+    #         f"WDQS using the search string {self.search_string}"
+    #     )

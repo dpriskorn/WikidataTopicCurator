@@ -4,22 +4,41 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask App</title>
+    <title>ItemSubjectorApp</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 {% include 'navbar.html' %}
-
+<div class="container mt-4">
     <h1>Topic item to work on</h1>
     <p>This tool allows you to find all
         articles that match a topic label but does not currently
         have the Main subject->topic statement.</p>
-    <form method="post">
-        <label for="input_string">QID:</label>
-        <input type="text" id="input_string" name="input_string" required>
+    <form action="/" method="post">
+        <p>
+            <label for="qid">QID:</label>
+            <input type="text" id="qid" name="qid" required>
+        </p>
+        <p>
+            <label for="limit">Limit*:</label>
+            <input type="text" id="limit" name="limit" value="10">
+        </p>
+        <p>
+            <label for="cs">CirrusSearch string**:</label>
+            <input type="text" id="cs" name="cs">
+        </p>
+        <p>
+            <label for="csa">CirrusSearch affix<sup>***</sup>:</label>
+            <input type="text" id="csa" name="cs">
+        </p>
         <button type="submit">Find articles</button>
+        <p>
+            <small>** Defaults to e.g. 'haswbstatement:P31=Q13442814 -haswbstatement:P921=Q1334131 "parental alienation syndrome"' for <a href="https://www.wikidata.org/wiki/Q1334131">Q1334131</a></small>
+            <small>** This is appended with a space in front</small>
+        </p>
     </form>
+</div>
 
 {% include 'footer.html' %}
 
