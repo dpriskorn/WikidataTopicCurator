@@ -14,19 +14,22 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    if request.method == "POST":
-        input_string = request.form["input_string"]
-        # Redirect to the /<string> endpoint with the provided input_string
-        return redirect(f"/{input_string}")
     return render_template("index.html")
 
 
 @app.route("/<qid>", methods=["GET"])
 def get_articles(qid):
-    # Call the GetArticles function with the provided string
-    articles = Articles(qid=qid)
+    limit_param = request.args.get('limit', '10')
+
+    try:
+        limit = int(limit_param)
+    except ValueError:
+        return jsonify(error="Limit must be an integer."), 400
+
+    # Call the GetArticles function with the provided string and the limit
+    articles = Articles(qid=qid, limit=limit)
     if not articles.is_valid_qid:
         return jsonify(f"Not a valid QID ({qid}), format must be 'Q[0-9]+'")
     articles.get_items()

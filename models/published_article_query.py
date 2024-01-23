@@ -81,7 +81,7 @@ class PublishedArticleQuery(Query):
               MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.main_subject_item}. }}
               SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
             }}
-            limit 10
+            limit {self.limit}
             """
 
     def __setup_cirrussearch_params__(self):

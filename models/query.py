@@ -16,6 +16,7 @@ class Query(BaseModel):
 
     search_string: str
     main_subject_item: str
+    limit: int
     results: Dict = {}
     query_string: str = ""
     items: List[Item] = list()

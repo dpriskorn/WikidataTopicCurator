@@ -6,6 +6,7 @@ from models.published_article_query import PublishedArticleQuery
 
 class Articles(BaseModel):
     qid: str
+    limit: int
     query: PublishedArticleQuery = None
 
     @property
@@ -28,7 +29,7 @@ class Articles(BaseModel):
         We only want scientific items which have matching labels
         """
         self.query = PublishedArticleQuery(
-            main_subject_item=self.qid, search_string=self.label
+            main_subject_item=self.qid, search_string=self.label, limit=self.limit
         )
         self.query.start()
         print(self.query.number_of_results_text)
