@@ -12,7 +12,7 @@
 {% include 'navbar.html' %}
 
 <div class="container mt-4">
-    <form action="add-main-subject" method="post">
+    <form action="add-main-subject" method="post" target="_blank">
         <h1>Working on <b>{{ label }}</b> (<a href="{{ link }}">{{ qid }}</a>)</h1>
         <input name="main_subject" type="hidden" value="{{ qid }}">
         <table class="table table-bordered">
