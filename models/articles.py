@@ -40,6 +40,6 @@ class Articles(BaseModel):
         html_list = list()
         for item in self.query.items:
             html_list.append(item.row_html(count=count))
-            count =+ 1
+            count += 1
         html = "\n".join(html_list)
         return html
