@@ -19,7 +19,9 @@
             <thead>
                 <tr>
                     <th scope="col">Number</th>
-                    <th scope="col">Add</th>
+                    <th scope="col">
+                        <input type="checkbox" class="toggle-all-checkbox">
+                    </th>
                     <th scope="col">Label</th>
                     <th scope="col">Instance of (P31)</th>
                     <th scope="col">Publication</th>
@@ -32,9 +34,26 @@
                 <!-- Add more rows as needed -->
             </tbody>
         </table>
+        <p><input type="checkbox" id="checkAll"> Check all checkboxes</p>
         <button type="submit" class="btn btn-primary mt-3">Send to QuickStatements</button>
     </form>
 </div>
+
+<!--Checkbox script-->
+<script>
+    document.querySelector('.toggle-all-checkbox').addEventListener('change', function () {
+        var checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+        checkboxes.forEach(function (checkbox) {
+            checkbox.checked = !checkbox.checked;
+        });
+    });
+    document.getElementById('checkAll').addEventListener('change', function () {
+        var checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+        checkboxes.forEach(function (checkbox) {
+            checkbox.checked = document.getElementById('checkAll').checked;
+        });
+    });
+</script>
 
 {% include 'footer.html' %}
 
