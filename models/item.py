@@ -64,6 +64,13 @@ class Item(BaseModel):
                 <td>{ self.instance_of_label }</td>
                 <td>{ self.publication_label }</td>
                 <td><a href="{ self.doi_url }" target="_blank">{ self.doi }</a></td>
-                <td><a href="{ self.link_to_full_resource }" target="_blank">Link to resource</a></td>
+        """
+        if self.link_to_full_resource:
+            row = baserow + f"""
+                            <td><a href="{ self.link_to_full_resource }" target="_blank">Link</a></td>
             </tr>"""
-        return baserow
+        else:
+            row = baserow + """
+                            <td>-</td>
+            </tr>"""
+        return row
