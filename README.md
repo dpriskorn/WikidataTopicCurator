@@ -41,6 +41,9 @@ This is already supported by adding a CirrusSearch affix, e.g. csa=inlabel:plura
 ## User script
 See https://www.wikidata.org/wiki/User:So9q/item-subjector-app-link.js
 
+## License
+GPLv3+
+
 ## Thanks
 This app was inspired by AuthorDisambiguator and Scholia.
 
