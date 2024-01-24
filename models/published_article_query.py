@@ -7,22 +7,17 @@ logger = logging.getLogger(__name__)
 
 
 class PublishedArticleQuery(Query):
-    cirrussearch_parameters: str = ""
-    cirrussearch_string: str = ""
-    cirrussearch_affix: str = ""
+    @property
+    def calculated_limit(self) -> int:
+        return self.parameters.limit - self.item_count
 
-    def __build_cirrussearch_string(self) -> None:
-        if not self.cirrussearch_string:
-            self.cirrussearch_string = f'{self.cirrussearch_parameters} \"{self.search_string}\"'
-        if self.cirrussearch_affix:
-            # Add the affix with a space in between
-            self.cirrussearch_string += f' {self.cirrussearch_affix}'
+    @property
+    def cirrussearch_string(self):
+        return self.parameters.cirrussearch.build_search_expression(term=self.term)
 
     def __prepare_and_build_query__(
         self,
     ):
-        self.__setup_cirrussearch_params__()
-        self.__build_cirrussearch_string()
         logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
         self.__build_query__()
 
@@ -36,22 +31,22 @@ class PublishedArticleQuery(Query):
         # The replacing with "\\\\\\\\" becomes "\\\\" after leaving python and then it works in
         # SPARQL where it becomes "\\" and thus match a single backslash
         """disabled:
-                      # Label
-              ?item rdfs:label ?label.
-              BIND(REPLACE(LCASE(?label), ",", "") as ?label1)
-              BIND(REPLACE(?label1, ":", "") as ?label2)
-              BIND(REPLACE(?label2, ";", "") as ?label3)
-              BIND(REPLACE(?label3, "\\\\(", "") as ?label4)
-              BIND(REPLACE(?label4, "\\\\)", "") as ?label5)
-              BIND(REPLACE(?label5, "\\\\[", "") as ?label6)
-              BIND(REPLACE(?label6, "\\\\]", "") as ?label7)
-              BIND(REPLACE(?label7, "\\\\\\\\", "") as ?label8)
-              BIND(?label8 as ?cleaned_label)
-              FILTER(CONTAINS(?cleaned_label, ' {self.search_string.lower()} '@{self.lang}) ||
-                     REGEX(?cleaned_label, '.* {self.search_string.lower()}$'@{self.lang}) ||
-                     REGEX(?cleaned_label, '^{self.search_string.lower()} .*'@{self.lang}))
+                # Label
+        ?item rdfs:label ?label.
+        BIND(REPLACE(LCASE(?label), ",", "") as ?label1)
+        BIND(REPLACE(?label1, ":", "") as ?label2)
+        BIND(REPLACE(?label2, ";", "") as ?label3)
+        BIND(REPLACE(?label3, "\\\\(", "") as ?label4)
+        BIND(REPLACE(?label4, "\\\\)", "") as ?label5)
+        BIND(REPLACE(?label5, "\\\\[", "") as ?label6)
+        BIND(REPLACE(?label6, "\\\\]", "") as ?label7)
+        BIND(REPLACE(?label7, "\\\\\\\\", "") as ?label8)
+        BIND(?label8 as ?cleaned_label)
+        FILTER(CONTAINS(?cleaned_label, ' {self.search_string.lower()} '@{self.lang}) ||
+               REGEX(?cleaned_label, '.* {self.search_string.lower()}$'@{self.lang}) ||
+               REGEX(?cleaned_label, '^{self.search_string.lower()} .*'@{self.lang}))
         """
-        self.query_string = f"""
+        self.wdqs_query_string = f"""
             #{config.user_agent}
             SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id ?full_resource
             WHERE {{
@@ -75,29 +70,10 @@ class PublishedArticleQuery(Query):
               ?item wdt:P953 ?full_resource.
               }}
               # Remove those that are subclass of this topic from the results
-              MINUS {{?item wdt:P921/wdt:P279 wd:{self.main_subject_item}. }}
-              MINUS {{?item wdt:P921/wdt:P279/wdt:P279 wd:{self.main_subject_item}. }}
-              MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.main_subject_item}. }}
+              MINUS {{?item wdt:P921/wdt:P279 wd:{self.parameters.topic.qid}. }}
+              MINUS {{?item wdt:P921/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
+              MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
               SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
             }}
-            limit {self.limit}
+            limit {self.calculated_limit}
             """
-
-    def __setup_cirrussearch_params__(self):
-        # if self.main_subject_item.args.limit_to_items_without_p921:
-        #     console.print(
-        #         "Limiting to scholarly articles without P921 main subject only"
-        #     )
-        #     self.cirrussearch_parameters = (
-        #         f"haswbstatement:P31=Q13442814 -haswbstatement:P921"
-        #     )
-        # else:
-        if not self.cirrussearch_parameters:
-            self.cirrussearch_parameters = f"haswbstatement:P31=Q13442814 -haswbstatement:P921={self.main_subject_item}"
-
-    # @property
-    # def number_of_results_text(self):
-    #     return (
-    #         f"Got {len(self.items)} items from "
-    #         f"WDQS using the search string {self.search_string}"
-    #     )

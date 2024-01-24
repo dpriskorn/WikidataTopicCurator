@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "itemsubjectorapp"
-version = "0.1.0"
+name = "wikidatatopiccurator"
+version = "1.0.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Dennis Priskorn <you@example.com>"]
 license = "GPLv3+"
 readme = "README.md"
 
@@ -10,9 +10,11 @@ readme = "README.md"
 python = "^3.11"
 pydantic = "^2.5.3"
 flask = "^3.0.1"
-black = "^23.12.1"
 wikibaseintegrator = "^0.12.5"
 
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.12.1"
 
 [build-system]
 requires = ["poetry-core"]

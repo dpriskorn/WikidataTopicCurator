@@ -5,21 +5,24 @@ from pydantic import BaseModel
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
 from models.item import Item
+from models.parameters import Parameters
 from models.value import Value
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
 
 class Query(BaseModel):
-    """We need a search_string and a main_subject_item"""
+    """We need a search_string and the parameters"""
 
-    search_string: str
-    main_subject_item: str
-    limit: int
+    term: str
+    parameters: Parameters
     results: Dict = {}
-    query_string: str = ""
+    wdqs_query_string: str = ""
     items: List[Item] = list()
     lang: str = "en"
+    item_count: int = 0
+    has_been_run: bool = False
 
     def __parse_results__(self) -> None:
         # console.print(self.results)
@@ -36,35 +39,39 @@ class Query(BaseModel):
             # pprint(item.model_dump())
             self.items.append(item)
 
-    def __strip_bad_chars__(self):
-        # Note this has to match the cleaning done in the sparql query
-        # We lowercase and remove common symbols
-        # We replace like this to save CPU cycles see
-        # https://stackoverflow.com/questions/3411771/best-way-to-replace-multiple-characters-in-a-string
-        self.search_string = (
-            self.search_string
-            # Needed for matching backslashes e.g. "Dmel\CG5330" on Q29717230
-            .replace("\\", "\\\\")
-            # Needed for when labels contain apostrophe
-            .replace("'", "\\'")
-            .replace(",", "")
-            .replace(":", "")
-            .replace(";", "")
-            .replace("(", "")
-            .replace(")", "")
-            .replace("[", "")
-            .replace("]", "")
-        )
-
     def __execute__(self):
-        self.results = execute_sparql_query(self.query_string)
+        self.results = execute_sparql_query(self.wdqs_query_string)
 
     def start(self):
         """Do everything needed to get the results"""
-        self.__strip_bad_chars__()
         self.__prepare_and_build_query__()
         self.__execute__()
         self.__parse_results__()
+        self.has_been_run = True
 
     def __prepare_and_build_query__(self):
         pass
+
+    def row_html(self, count: int) -> str:
+        return f"""
+        <tr>
+            <td>{count}</td>
+            <td>
+                <a href="{self.cirrussearch_url}">{self.term}</a>
+            </td>
+            <td>
+                {len(self.items)}
+            </td>
+            <td>
+                {self.has_been_run}
+            </td>
+        </tr>
+        """
+
+    @property
+    def cirrussearch_url(self) -> str:
+        return (
+            f"https://www.wikidata.org/w/index.php?search="
+            f"{quote(self.parameters.cirrussearch.build_search_expression(term=self.term))}"
+            f"&title=Special%3ASearch&profile=advanced&fulltext=1&ns0=1"
+        )

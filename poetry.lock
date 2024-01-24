@@ -757,4 +757,4 @@ ujson = ">=5.9.0,<6.0.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "dcbbdfbdfa4fbdc7b09dbef424f72db218f6e29864bd7e2e8ed0d61971302633"
+content-hash = "e0f489ac40e1f3406b5cae853f068c54ae57eac5fd47c31b31d762fe84ec4cb3"
