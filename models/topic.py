@@ -23,8 +23,10 @@ class TopicItem(BaseModel):
     def aliases(self) -> List[str]:
         wbi = WikibaseIntegrator()
         aliases = wbi.item.get(self.qid).aliases.get(language="en")
-        aliases = [str(alias) for alias in aliases]
-        return aliases
+        if aliases is not None:
+            aliases = [str(alias) for alias in aliases]
+            return aliases
+        return list()
 
     @property
     def is_valid(self):
