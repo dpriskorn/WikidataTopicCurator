@@ -1,11 +1,20 @@
 # Wikidata Topic Curator
-This is a rewrite of ItemSubjector into a webapp 
-to help wikimedians curate items with topics.
+This is a simplified rewrite of ItemSubjector into a webapp 
+to help wikimedians curate scientific articles with topics.
+
+![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/52dc9ff4-98d8-4952-9b14-8decc6963eeb)
+Start page
+
+![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/dd2c9b49-ffab-41a4-ae43-d8fb357518db)
+Result page
 
 ## Features
-Based on a given QID it fetches articles 
-matching the label of that QID that is currently 
-missing the QID as a topic and match the search term.
+Based on a given topic QID it fetches articles 
+matching the label, aliases or a custom user-provided term 
+of that QID that is currently missing the main subject property.
+
+After the user has approved the matches they can be sent to 
+quickstatements for batch upload.
 
 * Multi-term support
 * Populating terms from label and aliases
