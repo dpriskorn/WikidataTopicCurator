@@ -45,10 +45,8 @@ class Articles(BaseModel):
         else:
             logger.debug("Falling back to self.parameters.topic.label as term")
             query = PublishedArticleQuery(
-                main_subject_item=self.qid,
+                parameters=self.parameters,
                 search_string=self.parameters.topic.label,
-                limit=self.limit,
-                cirrussearch=self.cirrussearch,
             )
             query.start()
             self.queries.append(query)
