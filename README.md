@@ -20,6 +20,7 @@ quickstatements for batch upload.
 * Populating terms from label and aliases
 * User defined terms
 * Excluding items with a certain term (via CirrusSearch affix, see below)
+* Support batch upload by sending the matches to QuickStatement
 
 ### Limit
 It supports user-supplied limit like so: http://127.0.0.1:5000/Q1334131?limit=50
