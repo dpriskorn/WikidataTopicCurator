@@ -4,41 +4,120 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ItemSubjectorApp</title>
+    <title>Wikidata Topic Curator</title>
     <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <style>
+        #csp {
+            width: 40em;
+            box-sizing: border-box; /* Include padding and border in the width calculation */
+        }
+        .source {
+            display: inline-block;
+            padding: 5px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
+<a href="#main" class="visually-hidden visually-hidden-focusable">Skip to main content</a>
 {% include 'navbar.html' %}
-<div class="container mt-4">
-    <h1>Topic item to work on</h1>
-    <p>This tool allows you to find all
-        articles that match a topic label but does not currently
-        have the Main subject->topic statement.</p>
-    <form action="/" method="post">
-        <p>
-            <label for="qid">QID:</label>
-            <input type="text" id="qid" name="qid" required>
-        </p>
-        <p>
-            <label for="limit">Limit*:</label>
-            <input type="text" id="limit" name="limit" value="10">
-        </p>
-        <p>
-            <label for="cs">CirrusSearch string**:</label>
-            <input type="text" id="cs" name="cs">
-        </p>
-        <p>
-            <label for="csa">CirrusSearch affix<sup>***</sup>:</label>
-            <input type="text" id="csa" name="cs">
-        </p>
-        <button type="submit">Find articles</button>
-        <p>
-            <small>** Defaults to e.g. 'haswbstatement:P31=Q13442814 -haswbstatement:P921=Q1334131 "parental alienation syndrome"' for <a href="https://www.wikidata.org/wiki/Q1334131">Q1334131</a></small>
-            <small>** This is appended with a space in front</small>
-        </p>
-    </form>
-</div>
+<main class="container mb-3">
+    <div class="row">
+        <form action="/articles" method="get">
+            <div class="two-column-sections">
+                <div class="section">
+                    <dt><label for="qid">Topic item to work on:</label></dt>
+                    <dd><input type="text" id="qid" name="qid" value="{{qid}}" placeholder="Q1949144" required></dd>
+                </div>
+                <div class="section">
+                    <dt><label for="limit">Limit*:</label></dt>
+                    <dd><input type="text" id="limit" name="limit" placeholder="10"></dd>
+                </div>
+            </div>
+            <div class="row">
+                    <dt><label for="csp">CirrusSearch prefix</label></dt>
+                    <dd><input type="text" id="csp" name="prefix" value="" placeholder="haswbstatement:P31=Q13442814 -haswbstatement:P921=Q1334131"></dd>
+            </div>
+            <div class="row">
+                    <dt><label for="csa">CirrusSearch affix<sup>***</sup>:</label></dt>
+                    <dd><input type="text" id="csa" name="affix" placeholder="-inlabel:syndrome"></dd>
+            </div>
+            <div class="row">
+                <dt>Search terms list:</dt>
+                <!-- Dynamic list of strings -->
+                <table class="table table-bordered" id="termsTable">
+                    <tr>
+                        <th scope="col" class="col">Check <a href="#" onclick="checkAll(); return false;">all</a> | <a href="#" onclick="uncheckAll(); return false;">None</a></th>
+                        <th scope="col" class="col">Source</th>
+                        <th scope="col" class="col">Term</th>
+                    </tr>
+                    {{ terms_html | safe }}
+                </table>
+                <input type="text" class="form-control" id="term-input" placeholder="Add term to list">
+                <button type="button" onclick="addTerm()"  class="btn btn-secondary btn-sm">Add term</button>
+            </div>
+            <div class="row">
+                <button type="submit" class="btn btn-primary btn-lg center">Find articles</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    function addTerm() {
+        var newString = document.getElementById('term-input').value;
+        if (newString.trim() !== '') {
+            var table = document.getElementById('termsTable');
+
+            // Create a new row
+            var newRow = table.insertRow(table.rows.length);
+
+            // Insert cells into the row
+            var checkboxCell = newRow.insertCell(0);
+            var termCell = newRow.insertCell(1);
+            var sourceCell = newRow.insertCell(2);
+
+            // Create checkbox and set its properties
+            var checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'terms';
+            checkbox.value = newString;
+            checkbox.checked = true;
+
+            // Create span element for source
+            var span = document.createElement('span');
+            span.classList.add('source');
+            span.textContent = 'from user';
+
+            // Set the content of the cells
+            checkboxCell.appendChild(checkbox);
+            termCell.textContent = newString;
+            sourceCell.appendChild(span);
+
+            // Clear the input field
+            document.getElementById('term-input').value = '';
+        }
+    }
+
+    function checkAll() {
+        var checkboxes = document.getElementsByName('terms');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = true;
+        }
+    }
+
+    function uncheckAll() {
+        var checkboxes = document.getElementsByName('terms');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = false;
+        }
+    }
+</script>
 
 {% include 'footer.html' %}
 

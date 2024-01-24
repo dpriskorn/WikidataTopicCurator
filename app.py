@@ -1,10 +1,13 @@
 import logging
-from typing import List
+from typing import List, Optional
 from urllib.parse import quote, unquote
 
-from flask import Flask, render_template, request, redirect, jsonify, url_for
+from flask import Flask, render_template, request, redirect, jsonify
 
 from models.articles import Articles
+from models.cirrussearch import Cirrussearch
+from models.parameters import Parameters
+from models.topic import TopicItem
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -13,60 +16,125 @@ logger = logging.getLogger(__name__)
 invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
 
 
+def build_term_row(term: str, source: str):
+    return f"""
+    <tr>
+        <td>                    
+            <input type="checkbox" name="terms" value="{term}" checked=true>
+        </td>
+        <td>                    
+            {term}
+        </td>
+        <td>                    
+            <span class="source">{source}</span>
+        </td>
+    </tr>
+    """
+
+
+def build_terms_html(topic: Optional[TopicItem], user_terms: List[str]) -> str:
+    """Build the table row html"""
+    html_lines = list()
+    if topic:
+        html_lines.append(build_term_row(term=topic.label, source="label"))
+        for term in topic.aliases:
+            html_lines.append(build_term_row(term=term, source="alias"))
+    for term in user_terms:
+        html_lines.append(build_term_row(term=term, source="user"))
+    return "\n".join(html_lines)
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
+    """We either get a get request or a post request
+    If we get arguments, prefill the template"""
     if request.method == "POST":
-        # Handle the form submission and redirect to the appropriate route
         qid = request.form.get("qid", "")
         limit = request.form.get("limit", "10")
         cs = request.form.get("cs", "")
         csa = request.form.get("csa", "")
-
-        # Validate the QID (add your validation logic here)
-        if not qid.startswith("Q") and qid[:1].isdigit():
-            return jsonify(error=invalid_format), 400
-
-        # Redirect to the get_articles route with the provided parameters
-        url = url_for('get_articles', qid=qid, limit=limit, cs=cs, csa=csa)
-        logger.debug(f"url_for: {url}")
-        return redirect(url, code=302)
-    return render_template("index.html")
-
-
-@app.route("/<qid>", methods=["GET"])
-def get_articles(qid):
-    if not qid:
+        terms = request.form.getlist("terms")
+    else:
         qid = request.args.get("qid", "")
-        if not qid:
-            return jsonify(f"Got no QID")
+        limit = request.args.get("limit", "10")
+        cs = request.args.get("cs", "")
+        csa = request.args.get("csa", "")
+        terms = request.args.getlist("terms")
+    if qid:
+        topic = TopicItem(qid=qid)
+        if not topic.is_valid:
+            return jsonify(error=invalid_format), 400
+        return render_template(
+            "index.html",
+            qid=qid,
+            limit=limit,
+            cs=cs,
+            csa=csa,
+            terms_html=build_terms_html(user_terms=terms, topic=topic),
+        )
+    else:
+        return render_template(
+            "index.html",
+            qid=qid,
+            limit=limit,
+            cs=cs,
+            csa=csa,
+            terms_html=build_terms_html(user_terms=terms),
+        )
+
+
+@app.route("/articles", methods=["GET"])
+def articles():
+    qid = request.args.get("qid", "")
+    if not qid:
+        return jsonify(f"Got no QID")
     limit_param = request.args.get("limit", "10")
-    cs_string = unquote(request.args.get("cs", ""))
-    cs_affix = unquote(request.args.get("csa", ""))
-    if cs_string:
-        logger.debug(f"got cirrussearch string: '{cs_string}'")
+    terms = request.args.getlist("terms")
+    if terms:
+        logger.debug(f"got terms: '{terms}'")
+    else:
+        logger.debug("Got no terms")
+        terms = list()
+    # exit()
+    cs_prefix = unquote(request.args.get("prefix", ""))
+    if cs_prefix:
+        logger.debug(f"got cirrussearch string: '{cs_prefix}'")
+    cs_affix = unquote(request.args.get("affix", ""))
     if cs_affix:
         logger.debug(f"got cirrussearch affix: '{cs_affix}'")
-
     try:
-        limit = int(limit_param)
+        if limit_param:
+            limit = int(limit_param)
+        else:
+            # Default to 10
+            limit = 10
     except ValueError:
         return jsonify(error="Limit must be an integer."), 400
-
-    # Call the GetArticles function with the provided string and the limit
-    articles = Articles(
-        qid=qid, limit=limit, cirrussearch_string=cs_string, cirrussearch_affix=cs_affix
-    )
-    if not articles.is_valid_qid:
+    topic = TopicItem(qid=qid)
+    if not topic.is_valid:
+        logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
+    # Call the GetArticles function with the provided variables
+    articles = Articles(
+        parameters=Parameters(
+            topic=topic,
+            limit=limit,
+            cirrussearch=Cirrussearch(
+                prefix=cs_prefix, affix=cs_affix, topic=topic, search_terms=terms
+            ),
+            search_terms=terms,
+        )
+    )
+    # Run the queries
     articles.get_items()
-    article_rows = articles.get_item_html_rows()
     return render_template(
         ["results.html"],
-        article_rows=article_rows,
+        queries=articles.get_query_html_rows(),
+        item_count=articles.item_count,
+        article_rows=articles.get_item_html_rows(),
         qid=qid,
-        label=articles.label,
+        label=articles.parameters.topic.label,
         link=f"https://www.wikidata.org/wiki/{qid}",
-        cirrussearch_url=articles.cirrussearch_url
     )
 
 

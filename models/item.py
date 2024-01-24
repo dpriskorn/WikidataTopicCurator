@@ -66,11 +66,17 @@ class Item(BaseModel):
                 <td><a href="{ self.doi_url }" target="_blank">{ self.doi }</a></td>
         """
         if self.link_to_full_resource:
-            row = baserow + f"""
+            row = (
+                baserow
+                + f"""
                             <td><a href="{ self.link_to_full_resource }" target="_blank">Link</a></td>
             </tr>"""
+            )
         else:
-            row = baserow + """
+            row = (
+                baserow
+                + """
                             <td>-</td>
             </tr>"""
+            )
         return row
