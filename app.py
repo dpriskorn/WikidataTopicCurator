@@ -32,10 +32,10 @@ def build_term_row(term: str, source: str):
     """
 
 
-def build_terms_html(topic: Optional[TopicItem], user_terms: List[str]) -> str:
+def build_terms_html(user_terms: List[str], topic: Optional[TopicItem] = None) -> str:
     """Build the table row html"""
     html_lines = list()
-    if topic:
+    if topic is not None:
         html_lines.append(build_term_row(term=topic.label, source="label"))
         for term in topic.aliases:
             html_lines.append(build_term_row(term=term, source="alias"))
