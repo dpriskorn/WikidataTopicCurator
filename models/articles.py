@@ -46,7 +46,7 @@ class Articles(BaseModel):
             logger.debug("Falling back to self.parameters.topic.label as term")
             query = PublishedArticleQuery(
                 parameters=self.parameters,
-                search_string=self.parameters.topic.label,
+                term=self.parameters.topic.label,
             )
             query.start()
             self.queries.append(query)
