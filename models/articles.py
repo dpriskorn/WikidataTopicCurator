@@ -43,9 +43,7 @@ class Articles(BaseModel):
                 else:
                     logger.debug("Limit reached")
         else:
-            logger.debug("Falling back to self.topic.label as term")
-            if not self.topic and self.topic.label:
-                raise ValueError("topic label was empty")
+            logger.debug("Falling back to self.parameters.topic.label as term")
             query = PublishedArticleQuery(
                 main_subject_item=self.qid,
                 search_string=self.parameters.topic.label,

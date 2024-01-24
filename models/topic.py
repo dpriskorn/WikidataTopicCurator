@@ -32,3 +32,7 @@ class TopicItem(BaseModel):
     def is_valid(self):
         # logger.debug(f'{self.qid.startswith("Q")} and {self.qid[1:].isdigit()}')
         return self.qid.startswith("Q") and self.qid[1:].isdigit()
+
+    @property
+    def url(self):
+        return f"https://www.wikidata.org/wiki/{self.qid}"

@@ -114,6 +114,8 @@ def articles():
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
+    if topic.label is None or not topic.label:
+        return jsonify(f"topic label was empty, please go add an english label in Wikidata. See {topic.url}")
     # Call the GetArticles function with the provided variables
     articles = Articles(
         parameters=Parameters(
@@ -134,7 +136,7 @@ def articles():
         article_rows=articles.get_item_html_rows(),
         qid=qid,
         label=articles.parameters.topic.label,
-        link=f"https://www.wikidata.org/wiki/{qid}",
+        link=topic.url,
     )
 
 
