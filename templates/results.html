@@ -1,17 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>ItemSubjectorApp - Results</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% include 'head.html' %}
 <body>
 
 {% include 'navbar.html' %}
 
-<div class="container mt-4">
+<main class="container mt-4">
     <h1>CirrusSearch query results in Wikidata</h1>
     <table class="table table-bordered">
         <thead>
@@ -25,7 +19,7 @@
         {{ queries | safe }}
     </table>
     <p>Results: {{item_count}}</p>
-</div>
+</main>
 
 <div class="container mt-4">
     <form action="add-main-subject" method="post" target="_blank">
