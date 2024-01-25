@@ -155,7 +155,8 @@ def add_main_subject():
         selected_qids = request.form.getlist("selected_qids[]")
         topic = request.form.get("main_subject")
         if selected_qids and topic:
-            if len(selected_qids) > 30 and "topic-curator" in os.environ.get('USER'):
+            if len(selected_qids) > 30 and os.environ.get('USER') is None:
+                # Toolforge does not have USER set
                 return jsonify("Error: Toolforge does not support long URLs "
                                "so we cannot process this many QIDs at once. "
                                "An OAUTH rewrite is planned, see "
