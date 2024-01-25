@@ -164,6 +164,7 @@ def add_main_subject():
             base_url = "https://quickstatements.toolforge.org"
             endpoint = f"{base_url}/#/v1="
             url = f"{endpoint}{quote(commands)}"
+            print(f"url to qs: {url}")
             return redirect(location=url, code=302)
         return jsonify(f"Error: No QIDs selected.")
 
