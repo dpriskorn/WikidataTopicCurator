@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Optional
 from urllib.parse import quote, unquote
 
@@ -154,6 +155,11 @@ def add_main_subject():
         selected_qids = request.form.getlist("selected_qids[]")
         topic = request.form.get("main_subject")
         if selected_qids and topic:
+            if len(selected_qids) > 30 and "topic-curator" in os.environ.get('USER'):
+                return jsonify("Error: Toolforge does not support long URLs "
+                               "so we cannot process this many QIDs at once. "
+                               "An OAUTH rewrite is planned, see "
+                               "https://github.com/dpriskorn/WikidataTopicCurator/issues/5")
             # Handle the selected_qids as needed
             print(f"Got topic: {topic}")
             print("Selected QIDs:", selected_qids)
