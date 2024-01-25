@@ -4,6 +4,7 @@ from typing import List, Optional
 from urllib.parse import quote, unquote
 
 from flask import Flask, render_template, request, redirect, jsonify
+from markupsafe import escape
 
 from models.articles import Articles
 from models.cirrussearch import Cirrussearch
@@ -50,17 +51,17 @@ def index():
     """We either get a get request or a post request
     If we get arguments, prefill the template"""
     if request.method == "POST":
-        qid = request.form.get("qid", "")
-        limit = request.form.get("limit", "10")
-        cs = request.form.get("cs", "")
-        csa = request.form.get("csa", "")
-        terms = request.form.getlist("terms")
+        qid = escape(request.form.get("qid", ""))
+        limit = escape(request.form.get("limit", "10"))
+        cs = escape(request.form.get("cs", ""))
+        csa = escape(request.form.get("csa", ""))
+        terms = [escape(term) for term in request.form.getlist("terms")]
     else:
-        qid = request.args.get("qid", "")
-        limit = request.args.get("limit", "10")
-        cs = request.args.get("cs", "")
-        csa = request.args.get("csa", "")
-        terms = request.args.getlist("terms")
+        qid = escape(request.args.get("qid", ""))
+        limit = escape(request.args.get("limit", "10"))
+        cs = escape(request.args.get("cs", ""))
+        csa = escape(request.args.get("csa", ""))
+        terms = [escape(term) for term in request.args.getlist("terms")]
     if qid:
         topic = TopicItem(qid=qid)
         if not topic.is_valid:
@@ -86,21 +87,21 @@ def index():
 
 @app.route("/articles", methods=["GET"])
 def articles():
-    qid = request.args.get("qid", "")
+    qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify(f"Got no QID")
-    limit_param = request.args.get("limit", "10")
-    terms = request.args.getlist("terms")
+    limit_param = escape(request.args.get("limit", "10"))
+    terms = escape(request.args.getlist("terms"))
     if terms:
         logger.debug(f"got terms: '{terms}'")
     else:
         logger.debug("Got no terms")
         terms = list()
     # exit()
-    cs_prefix = unquote(request.args.get("prefix", ""))
+    cs_prefix = escape(unquote(request.args.get("prefix", "")))
     if cs_prefix:
         logger.debug(f"got cirrussearch string: '{cs_prefix}'")
-    cs_affix = unquote(request.args.get("affix", ""))
+    cs_affix = escape(unquote(request.args.get("affix", "")))
     if cs_affix:
         logger.debug(f"got cirrussearch affix: '{cs_affix}'")
     try:
@@ -152,8 +153,8 @@ def generate_qs_commands(main_subject: str, selected_qids: List[str]):
 @app.route("/add-main-subject", methods=["POST"])
 def add_main_subject():
     if request.method == "POST":
-        selected_qids = request.form.getlist("selected_qids[]")
-        topic = request.form.get("main_subject")
+        selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
+        topic = escape(request.form.get("main_subject"))
         if selected_qids and topic:
             if len(selected_qids) > 30 and os.environ.get('USER') is None:
                 # Toolforge does not have USER set
