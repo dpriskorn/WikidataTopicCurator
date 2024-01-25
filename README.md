@@ -31,8 +31,9 @@ https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator
 ## License
 GPLv3+
 
-## Thanks
-This app was inspired by AuthorDisambiguator and Scholia.
+## Inspiration
+This app was inspired by [topictagger](https://github.com/lubianat/topictagger), AuthorDisambiguator and Scholia.
+The bootstrap layout was inspired by [Wikidata Lexeme Forms](https://lexeme-forms.toolforge.org/)
 
 ## What I learned
 * the syntax of flask and FastAPI seem very similar
