@@ -29,7 +29,7 @@ https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator
 * Support english plural also. 
 
 ## License
-GPLv3+
+AGPLv3+
 
 ## Inspiration
 This app was inspired by [topictagger](https://github.com/lubianat/topictagger), AuthorDisambiguator and Scholia.
