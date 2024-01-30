@@ -1,9 +1,19 @@
 import logging
 import os
+import stat
 from typing import List, Optional
 from urllib.parse import quote, unquote
 
+import requests
+import requests_oauthlib  # type: ignore
+import decorator
+import mwoauth
+import requests_oauthlib
+import flask
+import toolforge
+import yaml
 from flask import Flask, render_template, request, redirect, jsonify
+from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
 from models.articles import Articles
@@ -16,7 +26,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
-
+user_agent = toolforge.set_user_agent('topic-curator', url="https://github.com/dpriskorn/WikidataTopicCurator/", email='User:So9q')
 
 def build_term_row(term: str, source: str):
     return f"""
@@ -92,6 +102,9 @@ def articles():
         return jsonify(f"Got no QID")
     limit_param = escape(request.args.get("limit", "10"))
     terms = escape(request.args.getlist("terms"))
+    # Get the list of terms from the request
+    raw_terms = request.args.getlist("terms")
+    terms = [escape(term) for term in raw_terms]
     if terms:
         logger.debug(f"got terms: '{terms}'")
     else:
@@ -153,6 +166,7 @@ def generate_qs_commands(main_subject: str, selected_qids: List[str]):
 @app.route("/add-main-subject", methods=["POST"])
 def add_main_subject():
     if request.method == "POST":
+        # fixme rewrite to use wikibaseintegrator with oauth
         selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
         topic = escape(request.form.get("main_subject"))
         if selected_qids and topic:
@@ -175,6 +189,86 @@ def add_main_subject():
             print(f"url to qs: {url}")
             return redirect(location=url, code=302)
         return jsonify(f"Error: No QIDs selected.")
+
+
+@decorator.decorator
+def read_private(func, *args, **kwargs):
+    try:
+        f = args[0]
+        fd = f.fileno()
+    except AttributeError:
+        pass
+    except IndexError:
+        pass
+    else:
+        mode = os.stat(fd).st_mode
+        if (stat.S_IRGRP | stat.S_IROTH) & mode:
+            raise ValueError(f'{getattr(f, "name", "config file")} is readable to others, '
+                             'must be exclusively user-readable!')
+    return func(*args, **kwargs)
+
+has_config = app.config.from_file('config.yaml', load=read_private(yaml.safe_load), silent=True)
+if has_config:
+    consumer_token = mwoauth.ConsumerToken(app.config['OAUTH']['consumer_key'], app.config['OAUTH']['consumer_secret'])
+else:
+    print('config.yaml file not found, assuming local development setup')
+    app.secret_key = 'fake'
+
+
+@app.route('/login')
+def login() -> RRV:
+    # from wikibaseintegrator import wbi_login
+    #
+    # login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer_secret='<your_consumer_secret>')
+    # login_instance.continue_oauth(oauth_callback_data='<the_callback_url_returned>')
+    if 'OAUTH' in app.config:
+        (redirect, request_token) = mwoauth.initiate('https://www.wikidata.org/w/index.php', consumer_token, user_agent=user_agent)
+        flask.session['oauth_request_token'] = dict(zip(request_token._fields, request_token))
+        flask.session['oauth_redirect_target'] = flask.request.referrer
+        return flask.redirect(redirect)
+    else:
+        return flask.redirect(flask.url_for('index'))
+
+
+@app.route('/logout')
+def logout() -> RRV:
+    flask.session.pop('oauth_access_token', None)
+    return flask.redirect(flask.url_for('index'))
+
+
+# def authenticated_session(host: str) -> mwapi.Session:
+#     return T272319RetryingSession(
+#         host=host,
+#         auth=generate_auth(),
+#         user_agent=user_agent,
+#     )
+
+def generate_auth() -> requests.auth.AuthBase:
+    access_token = mwoauth.AccessToken(**flask.session['oauth_access_token'])
+    return requests_oauthlib.OAuth1(
+        client_key=consumer_token.key,
+        client_secret=consumer_token.secret,
+        resource_owner_key=access_token.key,
+        resource_owner_secret=access_token.secret,
+    )
+
+# def get_userinfo() -> Optional[dict]:
+#     if 'userinfo' not in flask.g:
+#         flask.g.userinfo = query_userinfo()
+#
+#     return flask.g.userinfo
+
+# def query_userinfo() -> Optional[dict]:
+#     if 'oauth_access_token' not in flask.session:
+#         return None
+#     session = authenticated_session('https://www.wikidata.org')
+#     userinfo = session.get(action='query',
+#                            meta='userinfo',
+#                            uiprop=['groups', 'options'],
+#                            formatversion=2)['query']['userinfo']
+#     if userinfo.get('anon', False):
+#         return None
+#     return userinfo
 
 
 if __name__ == "__main__":
