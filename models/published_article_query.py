@@ -11,16 +11,6 @@ class PublishedArticleQuery(Query):
     def calculated_limit(self) -> int:
         return self.parameters.limit - self.item_count
 
-    @property
-    def cirrussearch_string(self):
-        return self.parameters.cirrussearch.build_search_expression(term=self.term)
-
-    def __prepare_and_build_query__(
-        self,
-    ):
-        logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
-        self.__build_query__()
-
     def __build_query__(self):
         # This query uses https://www.w3.org/TR/sparql11-property-paths/ to
         # find subjects that are subclass of one another up to 3 hops away

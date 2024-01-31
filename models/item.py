@@ -51,7 +51,6 @@ class Item(BaseModel):
         return self.publicationLabel.value or ""
 
     def row_html(self, count: int) -> str:
-        # todo turn some of these into links
         baserow = f"""<tr>
                 <td>{ count }</td>
                 <td>

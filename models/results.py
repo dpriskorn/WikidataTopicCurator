@@ -15,7 +15,7 @@ wbi_config["USER_AGENT"] = config.user_agent
 logger = logging.getLogger(__name__)
 
 
-class Articles(BaseModel):
+class Results(BaseModel):
     queries: List[Query] = list()
     parameters: Parameters
     item_count: int = 0  # only used for honoring limit
