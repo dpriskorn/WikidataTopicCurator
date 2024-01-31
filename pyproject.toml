@@ -11,6 +11,7 @@ python = "^3.11"
 pydantic = "^2.5.3"
 flask = "^3.0.1"
 wikibaseintegrator = "^0.12.5"
+toolforge = "^6.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
