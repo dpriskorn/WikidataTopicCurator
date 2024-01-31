@@ -5,6 +5,7 @@ from urllib.parse import quote, unquote
 
 import toolforge
 from flask import Flask, render_template, request, redirect, jsonify
+from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
 from models.articles import Articles
@@ -48,7 +49,7 @@ def build_terms_html(user_terms: List[str], topic: Optional[TopicItem] = None) -
 
 
 @app.route("/", methods=["GET", "POST"])
-def index():
+def index() -> RRV:
     """We either get a get request or a post request
     If we get arguments, prefill the template"""
     if request.method == "POST":
@@ -87,7 +88,7 @@ def index():
 
 
 @app.route("/articles", methods=["GET"])
-def articles():
+def articles() -> RRV:
     qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify(f"Got no QID")
@@ -155,7 +156,7 @@ def generate_qs_commands(main_subject: str, selected_qids: List[str]):
 
 
 @app.route("/add-main-subject", methods=["POST"])
-def add_main_subject():
+def add_main_subject() -> RRV:
     if request.method == "POST":
         selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
         topic = escape(request.form.get("main_subject"))
