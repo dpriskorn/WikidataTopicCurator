@@ -4,6 +4,7 @@ from typing import List, Dict
 from pydantic import BaseModel
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
+from models.google_scholar import GoogleScholarSearch
 from models.item import Item
 from models.parameters import Parameters
 from models.value import Value
@@ -52,6 +53,21 @@ class Query(BaseModel):
     def __prepare_and_build_query__(self):
         pass
 
+    @property
+    def get_total_google_results(self) -> int:
+        gs = GoogleScholarSearch(search_string=self.term)
+        return gs.total_results()
+
+    @property
+    def get_google_url(self) -> str:
+        gs = GoogleScholarSearch(search_string=self.term)
+        return gs.en_url()
+
+    @property
+    def formatted_google_results(self):
+        formatted_number = '{:,}'.format(self.get_total_google_results)
+        return formatted_number
+
     def row_html(self, count: int) -> str:
         return f"""
         <tr>
@@ -65,6 +81,7 @@ class Query(BaseModel):
             <td>
                 {self.has_been_run}
             </td>
+            <td><a href="{self.get_google_url}">{self.formatted_google_results}</a></td>
         </tr>
         """
 

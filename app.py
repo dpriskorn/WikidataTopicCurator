@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, redirect, jsonify
 from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
-from models.articles import Articles
+from models.results import Results
 from models.cirrussearch import Cirrussearch
 from models.parameters import Parameters
 from models.topic import TopicItem
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
 user_agent = toolforge.set_user_agent('topic-curator', url="https://github.com/dpriskorn/WikidataTopicCurator/", email='User:So9q')
+
 
 def build_term_row(term: str, source: str):
     return f"""
@@ -124,7 +125,7 @@ def articles() -> RRV:
     if topic.label is None or not topic.label:
         return jsonify(f"topic label was empty, please go add an english label in Wikidata. See {topic.url}")
     # Call the GetArticles function with the provided variables
-    articles = Articles(
+    articles = Results(
         parameters=Parameters(
             topic=topic,
             limit=limit,
