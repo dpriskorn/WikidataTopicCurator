@@ -93,6 +93,9 @@ def articles():
         return jsonify(f"Got no QID")
     limit_param = escape(request.args.get("limit", "10"))
     terms = escape(request.args.getlist("terms"))
+    # Get the list of terms from the request
+    raw_terms = request.args.getlist("terms")
+    terms = [escape(term) for term in raw_terms]
     if terms:
         logger.debug(f"got terms: '{terms}'")
     else:
