@@ -1,6 +1,9 @@
 import logging
+from pprint import pprint
 from typing import List, Dict
+from urllib.parse import quote
 
+import requests
 from pydantic import BaseModel
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
@@ -8,7 +11,6 @@ from models.google_scholar import GoogleScholarSearch
 from models.item import Item
 from models.parameters import Parameters
 from models.value import Value
-from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
@@ -50,23 +52,66 @@ class Query(BaseModel):
         self.__parse_results__()
         self.has_been_run = True
 
-    def __prepare_and_build_query__(self):
-        pass
+    @property
+    def cirrussearch_string(self):
+        return self.parameters.cirrussearch.build_search_expression(term=self.term)
+
+    def __prepare_and_build_query__(
+        self,
+    ):
+        logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
+        self.__build_query__()
 
     @property
-    def get_total_google_results(self) -> int:
+    def get_everywhere_google_results(self) -> int:
         gs = GoogleScholarSearch(search_string=self.term)
-        return gs.total_results()
+        return gs.everywhere_total_results
 
     @property
-    def get_google_url(self) -> str:
+    def get_in_title_google_results(self) -> int:
         gs = GoogleScholarSearch(search_string=self.term)
-        return gs.en_url()
+        return gs.in_title_total_results
 
     @property
-    def formatted_google_results(self):
-        formatted_number = '{:,}'.format(self.get_total_google_results)
+    def get_in_title_google_url(self) -> str:
+        gs = GoogleScholarSearch(search_string=self.term)
+        return gs.in_title_url()
+
+    @property
+    def get_everywhere_google_url(self) -> str:
+        gs = GoogleScholarSearch(search_string=self.term)
+        return gs.everywhere_url()
+
+    def formatted_google_results(self, number: int) -> str:
+        formatted_number = '{:,}'.format(number)
         return formatted_number
+
+    @property
+    def cirrussearch_total(self) -> int:
+        logger.debug("Getting CirrusSearch total")
+        base_url = "https://www.wikidata.org/w/api.php"
+        params = {
+            "action": "query",
+            "format": "json",
+            "list": "search",
+            "formatversion": 2,
+            "srsearch": self.cirrussearch_string,
+            "srlimit": 1,
+            "srprop": "size"
+        }
+
+        response = requests.get(base_url, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+            pprint(data)
+            total_hits = data.get("query", {}).get("searchinfo", {}).get("totalhits", 0)
+            logger.debug(f"cs total: {total_hits}")
+            # format like gs total
+            return int(total_hits)
+        else:
+            logger.error(f"Unable to fetch data. Status code: {response.status_code}")
+            return 0
 
     def row_html(self, count: int) -> str:
         return f"""
@@ -76,12 +121,16 @@ class Query(BaseModel):
                 <a href="{self.cirrussearch_url}">{self.term}</a>
             </td>
             <td>
-                {len(self.items)}
+                {len(self.items)} included / {self.cirrussearch_total} total
             </td>
             <td>
                 {self.has_been_run}
             </td>
-            <td><a href="{self.get_google_url}">{self.formatted_google_results}</a></td>
+            <td>
+            In title: <a href="{self.get_in_title_google_url}">
+                {self.formatted_google_results(number=self.get_in_title_google_results)}</a> 
+            (everywhere: <a href="{self.get_in_title_google_url}">
+                    {self.formatted_google_results(number=self.get_everywhere_google_results)}</a>)</td>
         </tr>
         """
 
