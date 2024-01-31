@@ -16,26 +16,6 @@ class PublishedArticleQuery(Query):
         # find subjects that are subclass of one another up to 3 hops away
         # This query also uses the https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI
         # which has a hardcoded limit of 10,000 items so you will never get more matches than that
-        # This query use regex to match beginning, middle and end of the label of matched items
-        # The replacing lines should match the similar python replacements in cleaning.py
-        # The replacing with "\\\\\\\\" becomes "\\\\" after leaving python and then it works in
-        # SPARQL where it becomes "\\" and thus match a single backslash
-        """disabled:
-                # Label
-        ?item rdfs:label ?label.
-        BIND(REPLACE(LCASE(?label), ",", "") as ?label1)
-        BIND(REPLACE(?label1, ":", "") as ?label2)
-        BIND(REPLACE(?label2, ";", "") as ?label3)
-        BIND(REPLACE(?label3, "\\\\(", "") as ?label4)
-        BIND(REPLACE(?label4, "\\\\)", "") as ?label5)
-        BIND(REPLACE(?label5, "\\\\[", "") as ?label6)
-        BIND(REPLACE(?label6, "\\\\]", "") as ?label7)
-        BIND(REPLACE(?label7, "\\\\\\\\", "") as ?label8)
-        BIND(?label8 as ?cleaned_label)
-        FILTER(CONTAINS(?cleaned_label, ' {self.search_string.lower()} '@{self.lang}) ||
-               REGEX(?cleaned_label, '.* {self.search_string.lower()}$'@{self.lang}) ||
-               REGEX(?cleaned_label, '^{self.search_string.lower()} .*'@{self.lang}))
-        """
         self.wdqs_query_string = f"""
             #{config.user_agent}
             SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id ?full_resource
