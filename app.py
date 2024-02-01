@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import List
 from urllib.parse import quote, unquote
 
 import toolforge
@@ -9,11 +9,11 @@ from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
 from models.Term import Term
+from models.cirrussearch import Cirrussearch
 from models.enums import Source
 from models.html_terms_builder import HtmlTermsBuilder
-from models.results import Results
-from models.cirrussearch import Cirrussearch
 from models.parameters import Parameters
+from models.results import Results
 from models.terms import Terms
 from models.topic import TopicItem
 
@@ -22,8 +22,11 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
-user_agent = toolforge.set_user_agent('topic-curator', url="https://github.com/dpriskorn/WikidataTopicCurator/", email='User:So9q')
-
+user_agent = toolforge.set_user_agent(
+    "topic-curator",
+    url="https://github.com/dpriskorn/WikidataTopicCurator/",
+    email="User:So9q",
+)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -57,7 +60,9 @@ def index() -> RRV:
             limit=limit,
             cs=cs,
             csa=csa,
-            terms_html=HtmlTermsBuilder(user_terms=user_terms, topic=topic).get_terms_html,
+            terms_html=HtmlTermsBuilder(
+                user_terms=user_terms, topic=topic
+            ).get_terms_html,
         )
     else:
         return render_template(
@@ -78,7 +83,9 @@ def articles() -> RRV:
     limit_param = escape(request.args.get("limit", "50"))
     # Handle terms
     raw_terms = request.args.getlist("terms")
-    terms = Terms(search_terms={Term(string=term, source=Source.USER) for term in raw_terms})
+    terms = Terms(
+        search_terms={Term(string=term, source=Source.USER) for term in raw_terms}
+    )
     terms.prepare()
     # exit()
     cs_prefix = escape(unquote(request.args.get("prefix", "")))
@@ -100,7 +107,9 @@ def articles() -> RRV:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
     if topic.label is None or not topic.label:
-        return jsonify(f"topic label was empty, please go add an english label in Wikidata. See {topic.url}")
+        return jsonify(
+            f"topic label was empty, please go add an english label in Wikidata. See {topic.url}"
+        )
     # Call the GetArticles function with the provided variables
     articles = Results(
         parameters=Parameters(
@@ -139,12 +148,14 @@ def add_main_subject() -> RRV:
         selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
         topic = escape(request.form.get("main_subject"))
         if selected_qids and topic:
-            if len(selected_qids) > 30 and os.environ.get('USER') is None:
+            if len(selected_qids) > 30 and os.environ.get("USER") is None:
                 # Toolforge does not have USER set
-                return jsonify("Error: Toolforge does not support long URLs "
-                               "so we cannot process this many QIDs at once. "
-                               "An OAUTH rewrite is planned, see "
-                               "https://github.com/dpriskorn/WikidataTopicCurator/issues/5")
+                return jsonify(
+                    "Error: Toolforge does not support long URLs "
+                    "so we cannot process this many QIDs at once. "
+                    "An OAUTH rewrite is planned, see "
+                    "https://github.com/dpriskorn/WikidataTopicCurator/issues/5"
+                )
             # Handle the selected_qids as needed
             print(f"Got topic: {topic}")
             print("Selected QIDs:", selected_qids)

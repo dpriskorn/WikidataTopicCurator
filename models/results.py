@@ -31,7 +31,9 @@ class Results(BaseModel):
             """We runt multiple queries because CirrusSearch
             does not support the logical OR operator"""
             for term in self.parameters.terms.search_terms:
-                query = PublishedArticleQuery(parameters=self.parameters, term=term, item_count=self.item_count)
+                query = PublishedArticleQuery(
+                    parameters=self.parameters, term=term, item_count=self.item_count
+                )
                 self.queries.append(query)
                 # Only run query if limit has not been reached
                 if self.item_count < self.parameters.limit:

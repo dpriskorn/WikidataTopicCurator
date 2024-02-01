@@ -24,8 +24,10 @@ class Terms(BaseModel):
         pprint(term_set)
         # logger.debug(f"length after duplicate removal: {len(term_set)}")
         self.search_terms = term_set
-        logger.debug(f"number of terms after preparation and "
-                     f"duplicate removal: {self.number_of_terms}")
+        logger.debug(
+            f"number of terms after preparation and "
+            f"duplicate removal: {self.number_of_terms}"
+        )
 
     @property
     def number_of_terms(self) -> int:

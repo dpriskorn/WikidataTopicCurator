@@ -15,6 +15,7 @@ class Term(BaseModel):
     because it is only used in one view/page at the moment
 
     We don't consider the source when comparing terms"""
+
     string: str
     source: Source
 

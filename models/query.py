@@ -85,7 +85,7 @@ class Query(BaseModel):
 
     @staticmethod
     def formatted_google_results(number: int) -> str:
-        formatted_number = '{:,}'.format(number)
+        formatted_number = "{:,}".format(number)
         return formatted_number
 
     @property
@@ -99,7 +99,7 @@ class Query(BaseModel):
             "formatversion": 2,
             "srsearch": self.cirrussearch_string,
             "srlimit": 1,
-            "srprop": "size"
+            "srprop": "size",
         }
 
         response = requests.get(base_url, params=params)

@@ -16,7 +16,8 @@ class GoogleScholarSearch(BaseModel):
     def in_title_url(self, lang: str = "en"):
         """Replace spaces with '+'
         We use the danish version because it is easier to parse :)
-        https://scholar.google.com/scholar?as_q=&as_epq=love&as_oq=&as_eq=&as_occt=title&as_sauthors=&as_publication=&as_ylo=&as_yhi=&hl=da&as_sdt=0%2C5&as_vis=1"""
+        https://scholar.google.com/scholar?as_q=&as_epq=love&as_oq=&as_eq=&as_occt=title&as_sauthors=&as_publication=&as_ylo=&as_yhi=&hl=da&as_sdt=0%2C5&as_vis=1
+        """
         return f"https://scholar.google.com/scholar?as_q=&hl={lang}&as_epq={self.term.plus_formatted}&as_occt=titleas_sdt=0%2C5&as_vis=1"
 
     def everywhere_url(self, lang: str = "en"):
@@ -26,8 +27,8 @@ class GoogleScholarSearch(BaseModel):
     @staticmethod
     def parse_response(response: Response) -> int:
         # html_content = '<div class="gs_ab_mdw">Ca. 3.690.000 resultater (<b>0,13</b> sek.)</div>'
-        only_div_with_class = SoupStrainer('div', class_='gs_ab_mdw')
-        soup = BeautifulSoup(response.text, 'lxml', parse_only=only_div_with_class)
+        only_div_with_class = SoupStrainer("div", class_="gs_ab_mdw")
+        soup = BeautifulSoup(response.text, "lxml", parse_only=only_div_with_class)
         result_text = soup.get_text(strip=True)
         # logger.debug(result_text)
         # Extracting "3.690.000" based on spaces

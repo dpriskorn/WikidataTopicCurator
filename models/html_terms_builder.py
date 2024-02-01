@@ -20,7 +20,9 @@ class HtmlTermsBuilder(BaseModel):
     def build_term_row(term: Term) -> str:
         if term is None:
             raise ValueError("term was None")
-        logger.debug(f"building html for term '{term.string}' with source '{str(term.source)}'")
+        logger.debug(
+            f"building html for term '{term.string}' with source '{str(term.source)}'"
+        )
         return f"""
         <tr>
             <td>                    
