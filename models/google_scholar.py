@@ -5,7 +5,7 @@ from bs4 import SoupStrainer, BeautifulSoup
 from pydantic import BaseModel
 from requests import Response
 
-from models.Term import Term
+from models.term import Term
 
 logger = logging.getLogger(__name__)
 

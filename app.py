@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, redirect, jsonify
 from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
-from models.Term import Term
+from models.term import Term
 from models.cirrussearch import Cirrussearch
 from models.enums import Source, Subgraph
 from models.html_terms_builder import HtmlTermsBuilder

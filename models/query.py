@@ -6,7 +6,7 @@ from urllib.parse import quote
 import requests
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
-from models.Term import Term
+from models.term import Term
 from models.google_scholar import GoogleScholarSearch
 from models.item import Item
 from models.parameters import Parameters
@@ -32,7 +32,6 @@ class Query(TopicCuratorBaseModel):
     @property
     def calculated_limit(self) -> int:
         return self.parameters.limit - self.item_count
-
 
     def __parse_results__(self) -> None:
         # console.print(self.results)
@@ -66,7 +65,7 @@ class Query(TopicCuratorBaseModel):
         return self.parameters.cirrussearch.build_search_expression(term=self.term)
 
     def __prepare_and_build_query__(
-        self,
+            self,
     ):
         logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
         self.__build_query__()

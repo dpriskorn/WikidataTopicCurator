@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from models.Term import Term
+from models.term import Term
 from models.enums import Source
 from models.terms import Terms
 from models.topic import TopicItem

@@ -5,7 +5,7 @@ from typing import Set
 
 from pydantic import BaseModel
 
-from models.Term import Term
+from models.term import Term
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ from typing import Dict
 import yaml
 from pydantic import BaseModel
 
-from models.Term import Term
+from models.term import Term
 from models.enums import Subgraph
 from models.topic import TopicItem
 
