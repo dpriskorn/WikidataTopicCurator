@@ -28,9 +28,25 @@ user_agent = toolforge.set_user_agent(
     email="User:So9q",
 )
 default_limit = 50
+documentation_url = "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
 
 
 @app.route("/", methods=["GET", "POST"])
+def lang() -> RRV:
+    if request.method == "POST":
+        subgraph = escape(request.form.get("subgraph", ""))
+        lang = escape(request.form.get("lang", ""))
+        qid = escape(request.form.get("qid", ""))
+    else:
+        subgraph = escape(request.args.get("subgraph", ""))
+        lang = escape(request.args.get("lang", ""))
+        qid = escape(request.args.get("qid", ""))
+    if not lang:
+        lang = "en"
+    return render_template("lang.html", qid=qid, lang=lang, subgraph=subgraph)
+
+
+@app.route("/subgraph", methods=["GET", "POST"])
 def subgraph() -> RRV:
     if request.method == "POST":
         lang = escape(request.form.get("lang", ""))
@@ -67,7 +83,7 @@ def term() -> RRV:
         user_terms = Terms(search_terms=set(terms))
         user_terms.prepare()
     if qid:
-        topic = TopicItem(qid=qid)
+        topic = TopicItem(qid=qid, lang=lang)
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
         return render_template(
@@ -101,8 +117,12 @@ def results() -> RRV:
     qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify(f"Got no QID")
-    # todo support lang
-    # lang = escape(request.args.get("lang", ""))
+    lang = escape(request.args.get("lang", ""))
+    if not lang:
+        return jsonify("Error: No language code specified.")
+    else:
+        if len(lang) > 3:
+            return jsonify("Error: The language code is more than 3 chars which not valid.")
     limit_param = escape(request.args.get("limit", default_limit))
     raw_subgraph = escape(request.args.get("subgraph", ""))
     if not raw_subgraph:
@@ -113,11 +133,12 @@ def results() -> RRV:
             subgraph = Subgraph(raw_subgraph)
             logger.debug(f"sucessfully parsed {subgraph.value}")
         except ValueError:
-            raise ValueError("parse subgraph")
+            return jsonify(f"Error: Invalid subgraph '{raw_subgraph}', "
+                           f"see {documentation_url} for documentation")
     # Handle terms
     raw_terms = request.args.getlist("terms")
     terms = Terms(
-        search_terms={Term(string=term, source=Source.USER) for term in raw_terms}
+        search_terms={Term(string=raw_term, source=Source.USER) for raw_term in raw_terms}
     )
     terms.prepare()
     cs_prefix = escape(unquote(request.args.get("prefix", "")))
@@ -134,7 +155,7 @@ def results() -> RRV:
             limit = default_limit
     except ValueError:
         return jsonify(error="Limit must be an integer."), 400
-    topic = TopicItem(qid=qid)
+    topic = TopicItem(qid=qid, lang=lang)
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
@@ -157,7 +178,8 @@ def results() -> RRV:
                 subgraph=subgraph,
             ),
             terms=terms,
-        )
+        ),
+        lang=lang
     )
     # Run the queries
     articles.get_items()
@@ -171,6 +193,8 @@ def results() -> RRV:
         qid=qid,
         label=articles.parameters.topic.label,
         link=topic.url,
+        lang=lang,
+        subgraph=subgraph.value
     )
 
 

@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class TopicItem(TopicCuratorBaseModel):
+    lang: str
     qid: str
     wbi: WikibaseIntegrator = WikibaseIntegrator()
 
@@ -22,12 +23,12 @@ class TopicItem(TopicCuratorBaseModel):
     @property
     def label(self):
         self.setup_wbi()
-        return self.wbi.item.get(self.qid).labels.get(language="en").value or ""
+        return self.wbi.item.get(self.qid).labels.get(language=self.lang).value or ""
 
     @property
     def aliases(self) -> List[str]:
         self.setup_wbi()
-        aliases = self.wbi.item.get(self.qid).aliases.get(language="en")
+        aliases = self.wbi.item.get(self.qid).aliases.get(language=self.lang)
         if aliases is not None:
             aliases = [str(alias) for alias in aliases]
             return aliases

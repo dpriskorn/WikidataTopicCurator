@@ -6,10 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 class PublishedArticleQuery(Query):
-    @property
-    def calculated_limit(self) -> int:
-        return self.parameters.limit - self.item_count
-
     def __build_query__(self):
         # This query uses https://www.w3.org/TR/sparql11-property-paths/ to
         # find subjects that are subclass of one another up to 3 hops away
@@ -42,7 +38,7 @@ class PublishedArticleQuery(Query):
               MINUS {{?item wdt:P921/wdt:P279 wd:{self.parameters.topic.qid}. }}
               MINUS {{?item wdt:P921/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
               MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
-              SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+              SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.lang}". }}
             }}
             limit {self.calculated_limit}
             """

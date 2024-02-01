@@ -19,14 +19,20 @@ logger = logging.getLogger(__name__)
 class Query(TopicCuratorBaseModel):
     """We need a search_string and the parameters"""
 
-    term: Term
+    lang: str
     parameters: Parameters
+    term: Term
     results: Dict = {}
     wdqs_query_string: str = ""
     items: List[Item] = list()
     lang: str = "en"
     item_count: int = 0
     has_been_run: bool = False
+
+    @property
+    def calculated_limit(self) -> int:
+        return self.parameters.limit - self.item_count
+
 
     def __parse_results__(self) -> None:
         # console.print(self.results)
@@ -44,6 +50,8 @@ class Query(TopicCuratorBaseModel):
             self.items.append(item)
 
     def __execute__(self):
+        if not self.wdqs_query_string:
+            raise ValueError("no query string")
         self.results = execute_sparql_query(self.wdqs_query_string)
 
     def start(self):
