@@ -1,28 +1,33 @@
 import logging
 from typing import List
 
-from pydantic import BaseModel
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.wbi_config import config as wbi_config
 
-import config
+from models.topic_curator_base_model import TopicCuratorBaseModel
 
-wbi_config["USER_AGENT"] = config.user_agent
 logger = logging.getLogger(__name__)
 
 
-class TopicItem(BaseModel):
+class TopicItem(TopicCuratorBaseModel):
     qid: str
+    wbi: WikibaseIntegrator = WikibaseIntegrator()
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def setup_wbi(self):
+        wbi_config["USER_AGENT"] = self.user_agent
 
     @property
     def label(self):
-        wbi = WikibaseIntegrator()
-        return wbi.item.get(self.qid).labels.get(language="en").value or ""
+        self.setup_wbi()
+        return self.wbi.item.get(self.qid).labels.get(language="en").value or ""
 
     @property
     def aliases(self) -> List[str]:
-        wbi = WikibaseIntegrator()
-        aliases = wbi.item.get(self.qid).aliases.get(language="en")
+        self.setup_wbi()
+        aliases = self.wbi.item.get(self.qid).aliases.get(language="en")
         if aliases is not None:
             aliases = [str(alias) for alias in aliases]
             return aliases

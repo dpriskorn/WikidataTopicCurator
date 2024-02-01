@@ -4,19 +4,19 @@ from typing import List, Dict
 from urllib.parse import quote
 
 import requests
-from pydantic import BaseModel
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
 from models.Term import Term
 from models.google_scholar import GoogleScholarSearch
 from models.item import Item
 from models.parameters import Parameters
+from models.topic_curator_base_model import TopicCuratorBaseModel
 from models.value import Value
 
 logger = logging.getLogger(__name__)
 
 
-class Query(BaseModel):
+class Query(TopicCuratorBaseModel):
     """We need a search_string and the parameters"""
 
     term: Term

@@ -6,54 +6,57 @@
 {% include 'navbar.html' %}
 
 <main class="container mt-4">
-    <h1>CirrusSearch query results in Wikidata</h1>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Query</th>
-                <th scope="col"># of results</th>
-                <th scope="col">Has been run</th>
-                <th scope="col">Google Scholar results</th>
-            </tr>
-        </thead>
-        {{ queries | safe }}
-    </table>
-    <p>Results: {{item_count}}</p>
-</main>
-
-<div class="container mt-4">
-    <form action="add-main-subject" method="post" target="_blank">
+    <div class="row">
         <h1>Working on <b>{{ label }}</b> (<a href="{{ link }}">{{ qid }}</a>)</h1>
-        <div class="alert alert-warning">Please avoid matching on general topics like
-            "gene therapy" before matching on narrower subjects like "cancer gene therapy".
-            Also lookout for when
-            concepts are used with different meanings: E.g. "mobbing" in zoology and
-            sociology is two different concepts.</div>
-        <input name="main_subject" type="hidden" value="{{ qid }}">
+        <h2>CirrusSearch query results in Wikidata</h2>
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th scope="col">Number</th>
-                    <th scope="col">
-                        <input type="checkbox" class="toggle-all-checkbox">
-                    </th>
-                    <th scope="col">Label</th>
-                    <th scope="col">Instance of (P31)</th>
-                    <th scope="col">Publication</th>
-                    <th scope="col">DOI</th>
-                    <th scope="col">Link to full resource</th>
+                    <th scope="col">#</th>
+                    <th scope="col">Query</th>
+                    <th scope="col"># of results</th>
+                    <th scope="col">Has been run</th>
+                    <th scope="col">Google Scholar results</th>
                 </tr>
             </thead>
-            <tbody>
-                {{ article_rows | safe }}
-                <!-- Add more rows as needed -->
-            </tbody>
+            {{ queries | safe }}
         </table>
-        <p><input type="checkbox" id="checkAll"> Check all checkboxes</p>
-        <button type="submit" class="btn btn-primary mt-3">Send to QuickStatements</button>
-    </form>
-</div>
+        <p>Results: {{item_count}}</p>
+    </div>
+    <div class="row">
+        <h2>Results</h2>
+        <form action="add-main-subject" method="post" target="_blank">
+            <div class="alert alert-warning">Please avoid matching on general topics like
+                "gene therapy" before matching on narrower subjects like "cancer gene therapy".
+                Also lookout for when
+                concepts are used with different meanings: E.g. "mobbing" in zoology and
+                sociology is two different concepts.</div>
+            <input name="main_subject" type="hidden" value="{{ qid }}">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Number</th>
+                        <th scope="col">
+                            <input type="checkbox" class="toggle-all-checkbox">
+                        </th>
+                        <th scope="col">Label</th>
+                        <th scope="col">Instance of (P31)</th>
+                        <th scope="col">Publication</th>
+                        <th scope="col">DOI</th>
+                        <th scope="col">Link to full resource</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ article_rows | safe }}
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+            <p><input type="checkbox" id="checkAll"> Check all checkboxes</p>
+            <button type="submit" class="btn btn-primary mt-3">Send to QuickStatements</button>
+        </form>
+    </div>
+</main>
+
 
 <!--Checkbox script-->
 <script>

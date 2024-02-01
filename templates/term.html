@@ -9,13 +9,16 @@
 
 <main class="container mb-3">
     <div class="row">
-        <form action="/articles" method="get">
+        <form action="/results" method="get">
+            <input type="hidden" name="lang" value="{{ lang }}">
+            <input type="hidden" name="subgraph" value="{{ subgraph }}">
             <div class="two-column-sections">
                 <div class="section">
                     <dt><label for="qid">Topic item to work on:</label></dt>
                     <dd><input type="text" id="qid" name="qid" value="{{qid}}"
                                placeholder="Q1949144"
-                               title="This is the topic to curate. Items that already have a
+                               title="This is the topic to curate.
+                               Items that already have a
                                P921 statement with this value will be excluded by default,
                                see Cirrussearch prefix below." required></dd>
                 </div>

@@ -2,15 +2,11 @@ import logging
 from typing import List
 
 from pydantic import BaseModel
-from wikibaseintegrator.wbi_config import config as wbi_config
 
-import config
 from models.item import Item
 from models.parameters import Parameters
 from models.published_article_query import PublishedArticleQuery
 from models.query import Query
-
-wbi_config["USER_AGENT"] = config.user_agent
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from markupsafe import escape
 
 from models.Term import Term
 from models.cirrussearch import Cirrussearch
-from models.enums import Source
+from models.enums import Source, Subgraph
 from models.html_terms_builder import HtmlTermsBuilder
 from models.parameters import Parameters
 from models.results import Results
@@ -27,21 +27,37 @@ user_agent = toolforge.set_user_agent(
     url="https://github.com/dpriskorn/WikidataTopicCurator/",
     email="User:So9q",
 )
+default_limit = 50
 
 
 @app.route("/", methods=["GET", "POST"])
-def index() -> RRV:
+def subgraph() -> RRV:
+    if request.method == "POST":
+        lang = escape(request.form.get("lang", ""))
+        qid = escape(request.form.get("qid", ""))
+    else:
+        lang = escape(request.args.get("lang", ""))
+        qid = escape(request.args.get("qid", ""))
+    return render_template("subgraph.html", qid=qid, lang=lang)
+
+
+@app.route("/term", methods=["GET", "POST"])
+def term() -> RRV:
     """We either get a get request or a post request
     If we get arguments, prefill the template"""
     if request.method == "POST":
+        lang = escape(request.form.get("lang", ""))
+        subgraph = escape(request.form.get("subgraph", ""))
         qid = escape(request.form.get("qid", ""))
-        limit = escape(request.form.get("limit", "10"))
+        limit = escape(request.form.get("limit", default_limit))
         cs = escape(request.form.get("cs", ""))
         csa = escape(request.form.get("csa", ""))
         raw_terms = request.form.getlist("terms")
     else:
+        lang = escape(request.args.get("lang", ""))
+        subgraph = escape(request.args.get("subgraph", ""))
         qid = escape(request.args.get("qid", ""))
-        limit = escape(request.args.get("limit", "10"))
+        limit = escape(request.args.get("limit", default_limit))
         cs = escape(request.args.get("cs", ""))
         csa = escape(request.args.get("csa", ""))
         raw_terms = request.args.getlist("terms")
@@ -55,7 +71,7 @@ def index() -> RRV:
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
         return render_template(
-            "index.html",
+            "term.html",
             qid=qid,
             limit=limit,
             cs=cs,
@@ -63,31 +79,47 @@ def index() -> RRV:
             terms_html=HtmlTermsBuilder(
                 user_terms=user_terms, topic=topic
             ).get_terms_html,
+            subgraph=subgraph,
+            lang=lang,
         )
     else:
         return render_template(
-            "index.html",
+            "term.html",
             qid=qid,
             limit=limit,
             cs=cs,
             csa=csa,
             terms_html=HtmlTermsBuilder(user_terms=user_terms).get_terms_html,
+            subgraph=subgraph,
+            lang=lang,
         )
 
 
-@app.route("/articles", methods=["GET"])
-def articles() -> RRV:
+@app.route("/results", methods=["GET"])
+def results() -> RRV:
+    # todo support post?
     qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify(f"Got no QID")
-    limit_param = escape(request.args.get("limit", "50"))
+    # todo support lang
+    # lang = escape(request.args.get("lang", ""))
+    limit_param = escape(request.args.get("limit", default_limit))
+    raw_subgraph = escape(request.args.get("subgraph", ""))
+    if not raw_subgraph:
+        # default subgraph
+        subgraph = Subgraph.SCIENTIFIC_ARTICLES
+    else:
+        try:
+            subgraph = Subgraph(raw_subgraph)
+            logger.debug(f"sucessfully parsed {subgraph.value}")
+        except ValueError:
+            raise ValueError("parse subgraph")
     # Handle terms
     raw_terms = request.args.getlist("terms")
     terms = Terms(
         search_terms={Term(string=term, source=Source.USER) for term in raw_terms}
     )
     terms.prepare()
-    # exit()
     cs_prefix = escape(unquote(request.args.get("prefix", "")))
     if cs_prefix:
         logger.debug(f"got cirrussearch string: '{cs_prefix}'")
@@ -99,7 +131,7 @@ def articles() -> RRV:
             limit = int(limit_param)
         else:
             # Default to 50
-            limit = 50
+            limit = default_limit
     except ValueError:
         return jsonify(error="Limit must be an integer."), 400
     topic = TopicItem(qid=qid)
@@ -107,8 +139,10 @@ def articles() -> RRV:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
     if topic.label is None or not topic.label:
+        # avoid hardcoding english here
         return jsonify(
-            f"topic label was empty, please go add an english label in Wikidata. See {topic.url}"
+            f"topic label was empty, please go add an "
+            f"english label in Wikidata. See {topic.url}"
         )
     # Call the GetArticles function with the provided variables
     articles = Results(
@@ -116,13 +150,19 @@ def articles() -> RRV:
             topic=topic,
             limit=limit,
             cirrussearch=Cirrussearch(
-                prefix=cs_prefix, affix=cs_affix, topic=topic, search_terms=terms
+                user_prefix=cs_prefix,
+                affix=cs_affix,
+                topic=topic,
+                search_terms=terms,
+                subgraph=subgraph,
             ),
             terms=terms,
         )
     )
     # Run the queries
     articles.get_items()
+    # todo propagate all parameters so we can increase
+    #  the limit with a single click
     return render_template(
         ["results.html"],
         queries=articles.get_query_html_rows(),
