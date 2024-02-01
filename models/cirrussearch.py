@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from models.Term import Term
 from models.topic import TopicItem
 
 
@@ -21,12 +22,12 @@ class Cirrussearch(BaseModel):
         """Default to work on scientific articles without the current topic"""
         return f"haswbstatement:P31=Q13442814 -haswbstatement:P921={self.topic.qid}"
 
-    def build_search_expression(self, term: str) -> str:
+    def build_search_expression(self, term: Term) -> str:
         """We build a search for the exact term by using quotes around the term
         The term must be in the label and is quoted to be found in full"""
         if not term:
             raise ValueError("no term")
         if self.prefix:
-            return f'{self.prefix} inlabel:"{term}" {self.affix}'
+            return f'{self.prefix} inlabel:"{term.string}" {self.affix}'
         else:
-            return f'{self.build_prefix} inlabel:"{term}" {self.affix}'
+            return f'{self.build_prefix} inlabel:"{term.string}" {self.affix}'

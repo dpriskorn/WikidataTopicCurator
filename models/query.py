@@ -7,6 +7,7 @@ import requests
 from pydantic import BaseModel
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
+from models.Term import Term
 from models.google_scholar import GoogleScholarSearch
 from models.item import Item
 from models.parameters import Parameters
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class Query(BaseModel):
     """We need a search_string and the parameters"""
 
-    term: str
+    term: Term
     parameters: Parameters
     results: Dict = {}
     wdqs_query_string: str = ""
@@ -64,26 +65,27 @@ class Query(BaseModel):
 
     @property
     def get_everywhere_google_results(self) -> int:
-        gs = GoogleScholarSearch(search_string=self.term)
+        gs = GoogleScholarSearch(term=self.term)
         return gs.everywhere_total_results
 
     @property
     def get_in_title_google_results(self) -> int:
-        gs = GoogleScholarSearch(search_string=self.term)
+        gs = GoogleScholarSearch(term=self.term)
         return gs.in_title_total_results
 
     @property
     def get_in_title_google_url(self) -> str:
-        gs = GoogleScholarSearch(search_string=self.term)
+        gs = GoogleScholarSearch(term=self.term)
         return gs.in_title_url()
 
     @property
     def get_everywhere_google_url(self) -> str:
-        gs = GoogleScholarSearch(search_string=self.term)
+        gs = GoogleScholarSearch(term=self.term)
         return gs.everywhere_url()
 
-    def formatted_google_results(self, number: int) -> str:
-        formatted_number = '{:,}'.format(number)
+    @staticmethod
+    def formatted_google_results(number: int) -> str:
+        formatted_number = "{:,}".format(number)
         return formatted_number
 
     @property
@@ -97,7 +99,7 @@ class Query(BaseModel):
             "formatversion": 2,
             "srsearch": self.cirrussearch_string,
             "srlimit": 1,
-            "srprop": "size"
+            "srprop": "size",
         }
 
         response = requests.get(base_url, params=params)
@@ -118,10 +120,10 @@ class Query(BaseModel):
         <tr>
             <td>{count}</td>
             <td>
-                <a href="{self.cirrussearch_url}">{self.term}</a>
+                <a href="{self.cirrussearch_url}">{self.term.string}</a>
             </td>
             <td>
-                {len(self.items)} included / {self.cirrussearch_total} total
+                {len(self.items)} included / <a href="{self.cirrussearch_url}">{self.cirrussearch_total} total</a>
             </td>
             <td>
                 {self.has_been_run}
