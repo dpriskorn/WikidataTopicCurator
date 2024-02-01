@@ -33,7 +33,7 @@ class Term(BaseModel):
         return self
 
     def remove_dashes(self):
-        self.string = self.string.replace("-", "")
+        self.string = self.string.replace("-", " ")
 
     def lower(self):
         self.string = self.string.lower()
