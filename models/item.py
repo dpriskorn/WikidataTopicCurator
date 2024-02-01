@@ -12,7 +12,7 @@ class Item(BaseModel):
     instance_ofLabel: Value = Value
     publicationLabel: Value = Value
     doi_id: Value = Value
-    full_resource: Value = Value
+    full_resources: Value = Value
 
     @property
     def qid_uri(self) -> str:
@@ -26,10 +26,6 @@ class Item(BaseModel):
     def label(self) -> str:
         return self.itemLabel.value
 
-    # @property
-    # def description(self):
-    #     return self.descriptionLabel.value
-
     @property
     def instance_of_label(self) -> str:
         return self.instance_ofLabel.value or ""
@@ -41,10 +37,6 @@ class Item(BaseModel):
     @property
     def doi_url(self):
         return f"https://dx.doi.org/{self.doi}"
-
-    @property
-    def link_to_full_resource(self) -> str:
-        return self.full_resource.value or ""
 
     @property
     def publication_label(self) -> str:
@@ -64,11 +56,11 @@ class Item(BaseModel):
                 <td>{ self.publication_label }</td>
                 <td><a href="{ self.doi_url }" target="_blank">{ self.doi }</a></td>
         """
-        if self.link_to_full_resource:
+        if self.full_resources_list:
             row = (
                 baserow
                 + f"""
-                            <td><a href="{ self.link_to_full_resource }" target="_blank">Link</a></td>
+                            <td>{self.full_resources_html}</td>
             </tr>"""
             )
         else:
@@ -79,3 +71,14 @@ class Item(BaseModel):
             </tr>"""
             )
         return row
+
+    @property
+    def full_resources_list(self):
+        return self.full_resources.value.split(",")
+
+    @property
+    def full_resources_html(self):
+        html = list()
+        for link in self.full_resources_list:
+            html.append(f'<a href="{link}">Link</a>')
+        return ", ".join(html)

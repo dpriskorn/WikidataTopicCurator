@@ -43,7 +43,7 @@ class Query(TopicCuratorBaseModel):
                 instance_ofLabel=item_json.get("instance_ofLabel", Value()),
                 publicationLabel=item_json.get("publicationLabel", Value()),
                 doi_id=item_json.get("doi_id", Value()),
-                full_resource=item_json.get("full_resource", Value()),
+                full_resources=item_json.get("full_resources", Value()),
             )
             # pprint(item.model_dump())
             self.items.append(item)
@@ -65,7 +65,7 @@ class Query(TopicCuratorBaseModel):
         return self.parameters.cirrussearch.build_search_expression(term=self.term)
 
     def __prepare_and_build_query__(
-            self,
+        self,
     ):
         logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
         self.__build_query__()

@@ -13,7 +13,10 @@ class PublishedArticleQuery(Query):
         # which has a hardcoded limit of 10,000 items so you will never get more matches than that
         self.wdqs_query_string = f"""
             #{self.user_agent}
-            SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id ?full_resource
+            SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel 
+            ?publicationLabel ?doi_id 
+            (GROUP_CONCAT(DISTINCT ?full_resource; separator=",")
+             as ?full_resources)
             WHERE {{
               hint:Query hint:optimizer "None".
               BIND(STR('{self.cirrussearch_string}') as ?search_string)
@@ -40,5 +43,6 @@ class PublishedArticleQuery(Query):
               MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
               SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.lang}". }}
             }}
-            limit {self.calculated_limit}
-            """
+            GROUP BY ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id
+            LIMIT {self.calculated_limit}
+        """

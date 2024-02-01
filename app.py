@@ -11,7 +11,6 @@ from markupsafe import escape
 from models.term import Term
 from models.cirrussearch import Cirrussearch
 from models.enums import Source, Subgraph
-from models.html_terms_builder import HtmlTermsBuilder
 from models.parameters import Parameters
 from models.results import Results
 from models.terms import Terms
@@ -27,8 +26,10 @@ user_agent = toolforge.set_user_agent(
     url="https://github.com/dpriskorn/WikidataTopicCurator/",
     email="User:So9q",
 )
-default_limit = 50
-documentation_url = "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
+default_limit = 2000
+documentation_url = (
+    "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
+)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -77,11 +78,12 @@ def term() -> RRV:
         cs = escape(request.args.get("cs", ""))
         csa = escape(request.args.get("csa", ""))
         raw_terms = request.args.getlist("terms")
-    user_terms = Terms()
     if raw_terms:
         terms = [Term(string=term) for term in raw_terms]
         user_terms = Terms(search_terms=set(terms))
         user_terms.prepare()
+    else:
+        user_terms = Terms()
     if qid:
         topic = TopicItem(qid=qid, lang=lang)
         if not topic.is_valid:
@@ -92,9 +94,7 @@ def term() -> RRV:
             limit=limit,
             cs=cs,
             csa=csa,
-            terms_html=HtmlTermsBuilder(
-                user_terms=user_terms, topic=topic
-            ).get_terms_html,
+            terms_html=user_terms.get_terms_html(topic=topic),
             subgraph=subgraph,
             lang=lang,
         )
@@ -105,7 +105,7 @@ def term() -> RRV:
             limit=limit,
             cs=cs,
             csa=csa,
-            terms_html=HtmlTermsBuilder(user_terms=user_terms).get_terms_html,
+            terms_html=user_terms.get_terms_html(),
             subgraph=subgraph,
             lang=lang,
         )
@@ -122,7 +122,9 @@ def results() -> RRV:
         return jsonify("Error: No language code specified.")
     else:
         if len(lang) > 3:
-            return jsonify("Error: The language code is more than 3 chars which not valid.")
+            return jsonify(
+                "Error: The language code is more than 3 chars which not valid."
+            )
     limit_param = escape(request.args.get("limit", default_limit))
     raw_subgraph = escape(request.args.get("subgraph", ""))
     if not raw_subgraph:
@@ -133,12 +135,16 @@ def results() -> RRV:
             subgraph = Subgraph(raw_subgraph)
             logger.debug(f"sucessfully parsed {subgraph.value}")
         except ValueError:
-            return jsonify(f"Error: Invalid subgraph '{raw_subgraph}', "
-                           f"see {documentation_url} for documentation")
+            return jsonify(
+                f"Error: Invalid subgraph '{raw_subgraph}', "
+                f"see {documentation_url} for documentation"
+            )
     # Handle terms
     raw_terms = request.args.getlist("terms")
     terms = Terms(
-        search_terms={Term(string=raw_term, source=Source.USER) for raw_term in raw_terms}
+        search_terms={
+            Term(string=raw_term, source=Source.USER) for raw_term in raw_terms
+        }
     )
     terms.prepare()
     cs_prefix = escape(unquote(request.args.get("prefix", "")))
@@ -179,7 +185,7 @@ def results() -> RRV:
             ),
             terms=terms,
         ),
-        lang=lang
+        lang=lang,
     )
     # Run the queries
     articles.get_items()
@@ -194,7 +200,7 @@ def results() -> RRV:
         label=articles.parameters.topic.label,
         link=topic.url,
         lang=lang,
-        subgraph=subgraph.value
+        subgraph=subgraph.value,
     )
 
 
