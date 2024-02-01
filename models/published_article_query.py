@@ -1,6 +1,5 @@
 import logging
 
-import config
 from models.query import Query
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ class PublishedArticleQuery(Query):
         # This query also uses the https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI
         # which has a hardcoded limit of 10,000 items so you will never get more matches than that
         self.wdqs_query_string = f"""
-            #{config.user_agent}
+            #{self.user_agent}
             SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id ?full_resource
             WHERE {{
               hint:Query hint:optimizer "None".
