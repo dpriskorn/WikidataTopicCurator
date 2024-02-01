@@ -8,9 +8,13 @@ from flask import Flask, render_template, request, redirect, jsonify
 from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
+from models.Term import Term
+from models.enums import Source
+from models.html_terms_builder import HtmlTermsBuilder
 from models.results import Results
 from models.cirrussearch import Cirrussearch
 from models.parameters import Parameters
+from models.terms import Terms
 from models.topic import TopicItem
 
 app = Flask(__name__)
@@ -20,33 +24,6 @@ logger = logging.getLogger(__name__)
 invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
 user_agent = toolforge.set_user_agent('topic-curator', url="https://github.com/dpriskorn/WikidataTopicCurator/", email='User:So9q')
 
-
-def build_term_row(term: str, source: str):
-    return f"""
-    <tr>
-        <td>                    
-            <input type="checkbox" name="terms" value="{term}" checked=true>
-        </td>
-        <td>                    
-            {term}
-        </td>
-        <td>                    
-            <span class="source">{source}</span>
-        </td>
-    </tr>
-    """
-
-
-def build_terms_html(user_terms: List[str], topic: Optional[TopicItem] = None) -> str:
-    """Build the table row html"""
-    html_lines = list()
-    if topic is not None:
-        html_lines.append(build_term_row(term=topic.label, source="label"))
-        for term in topic.aliases:
-            html_lines.append(build_term_row(term=term, source="alias"))
-    for term in user_terms:
-        html_lines.append(build_term_row(term=term, source="user"))
-    return "\n".join(html_lines)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -58,13 +35,18 @@ def index() -> RRV:
         limit = escape(request.form.get("limit", "10"))
         cs = escape(request.form.get("cs", ""))
         csa = escape(request.form.get("csa", ""))
-        terms = [escape(term) for term in request.form.getlist("terms")]
+        raw_terms = request.form.getlist("terms")
     else:
         qid = escape(request.args.get("qid", ""))
         limit = escape(request.args.get("limit", "10"))
         cs = escape(request.args.get("cs", ""))
         csa = escape(request.args.get("csa", ""))
-        terms = [escape(term) for term in request.args.getlist("terms")]
+        raw_terms = request.args.getlist("terms")
+    user_terms = Terms()
+    if raw_terms:
+        terms = [Term(string=term) for term in raw_terms]
+        user_terms = Terms(search_terms=set(terms))
+        user_terms.prepare()
     if qid:
         topic = TopicItem(qid=qid)
         if not topic.is_valid:
@@ -75,7 +57,7 @@ def index() -> RRV:
             limit=limit,
             cs=cs,
             csa=csa,
-            terms_html=build_terms_html(user_terms=terms, topic=topic),
+            terms_html=HtmlTermsBuilder(user_terms=user_terms, topic=topic).get_terms_html,
         )
     else:
         return render_template(
@@ -84,7 +66,7 @@ def index() -> RRV:
             limit=limit,
             cs=cs,
             csa=csa,
-            terms_html=build_terms_html(user_terms=terms),
+            terms_html=HtmlTermsBuilder(user_terms=user_terms).get_terms_html,
         )
 
 
@@ -93,16 +75,11 @@ def articles() -> RRV:
     qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify(f"Got no QID")
-    limit_param = escape(request.args.get("limit", "10"))
-    terms = escape(request.args.getlist("terms"))
-    # Get the list of terms from the request
+    limit_param = escape(request.args.get("limit", "50"))
+    # Handle terms
     raw_terms = request.args.getlist("terms")
-    terms = [escape(term) for term in raw_terms]
-    if terms:
-        logger.debug(f"got terms: '{terms}'")
-    else:
-        logger.debug("Got no terms")
-        terms = list()
+    terms = Terms(search_terms={Term(string=term, source=Source.USER) for term in raw_terms})
+    terms.prepare()
     # exit()
     cs_prefix = escape(unquote(request.args.get("prefix", "")))
     if cs_prefix:
@@ -114,8 +91,8 @@ def articles() -> RRV:
         if limit_param:
             limit = int(limit_param)
         else:
-            # Default to 10
-            limit = 10
+            # Default to 50
+            limit = 50
     except ValueError:
         return jsonify(error="Limit must be an integer."), 400
     topic = TopicItem(qid=qid)
@@ -132,7 +109,7 @@ def articles() -> RRV:
             cirrussearch=Cirrussearch(
                 prefix=cs_prefix, affix=cs_affix, topic=topic, search_terms=terms
             ),
-            search_terms=terms,
+            terms=terms,
         )
     )
     # Run the queries
