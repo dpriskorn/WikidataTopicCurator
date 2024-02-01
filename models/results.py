@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class Results(BaseModel):
-    queries: List[Query] = list()
+    lang: str
     parameters: Parameters
+    queries: List[Query] = list()
     item_count: int = 0  # only used for honoring limit
 
     def get_items(self):
@@ -28,7 +29,7 @@ class Results(BaseModel):
             does not support the logical OR operator"""
             for term in self.parameters.terms.search_terms:
                 query = PublishedArticleQuery(
-                    parameters=self.parameters, term=term, item_count=self.item_count
+                    parameters=self.parameters, term=term, item_count=self.item_count, lang=self.lang
                 )
                 self.queries.append(query)
                 # Only run query if limit has not been reached
@@ -45,6 +46,7 @@ class Results(BaseModel):
             query = PublishedArticleQuery(
                 parameters=self.parameters,
                 term=self.parameters.topic.label,
+                lang=self.lang
             )
             query.start()
             self.queries.append(query)

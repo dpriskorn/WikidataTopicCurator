@@ -1,0 +1,39 @@
+<html lang="en">
+
+{% include 'head.html' %}
+
+<body>
+
+{% include 'navbar.html' %}
+
+
+<main class="container mb-3">
+    <div class="row">
+        <form id="subgraphForm" method="get">
+            <input type="hidden" name="subgraph" value="{{ subgraph }}">
+            <input type="hidden" name="qid" value="{{ qid }}">
+            <dl class="row">
+                <dt class="col-sm-3">Language code:</dt>
+                <dd class="col-sm-9">
+                    <input type="text" class="form-control" id="lang"
+                           name="lang" maxlength="3" value="{{ lang }}"
+                           title="Input a language code supported by Wikimedia.">
+                </dd>
+            </dl>
+            <button type="submit" class="btn btn-primary mt-3" onclick="submitForm('/subgraph')">Select subgraph</button>
+            <button type="submit" class="btn btn-primary mt-3" onclick="submitForm('/term')">Select terms and work on scientific articles</button>
+        </form>
+    </div>
+</main>
+
+<script>
+    function submitForm(action) {
+        document.getElementById('subgraphForm').action = action;
+        document.getElementById('subgraphForm').submit();
+    }
+</script>
+
+{% include 'footer.html' %}
+
+</body>
+</html>
