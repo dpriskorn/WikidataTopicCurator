@@ -26,7 +26,7 @@ quickstatements for batch upload.
 https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator
 
 ## Todo
-* Support english plural also. 
+See the issues in Github. Feel free to open a new one!
 
 ## License
 AGPLv3+
@@ -41,3 +41,6 @@ The bootstrap layout was inspired by [Wikidata Lexeme Forms](https://lexeme-form
 * pycharm has very nice html editing support :)
 * chatgpt is very good at helping with flask apps, which really sped up development
 * bootstrap is nice, I don't have to fiddle with CSS at all, just choose a few classes and it's good enough to get out the door
+
+## Effort
+This software is a product of about two weeks work of time.
