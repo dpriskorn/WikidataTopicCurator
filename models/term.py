@@ -41,3 +41,22 @@ class Term(BaseModel):
     @property
     def plus_formatted(self):
         return self.string.replace(" ", "+")
+
+    @property
+    def row_html(self) -> str:
+        logger.debug(
+            f"building html for term '{self.string}' with source '{self.source.value}'"
+        )
+        return f"""
+        <tr>
+            <td>                    
+                <input type="checkbox" name="terms" value="{self.string}" checked=true>
+            </td>
+            <td>                    
+                {self.string}
+            </td>
+            <td>                    
+                <span class="source">{self.source.value}</span>
+            </td>
+        </tr>
+        """
