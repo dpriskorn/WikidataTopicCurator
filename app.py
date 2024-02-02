@@ -55,6 +55,8 @@ def subgraph() -> RRV:
     else:
         lang = escape(request.args.get("lang", ""))
         qid = escape(request.args.get("qid", ""))
+    if not qid:
+        return jsonify(f"Error: Got no QID")
     return render_template("subgraph.html", qid=qid, lang=lang)
 
 
@@ -78,6 +80,8 @@ def term() -> RRV:
         cs = escape(request.args.get("cs", ""))
         csa = escape(request.args.get("csa", ""))
         raw_terms = request.args.getlist("terms")
+    if not qid:
+        return jsonify(f"Error: Got no QID")
     if raw_terms:
         terms = [Term(string=term) for term in raw_terms]
         user_terms = Terms(search_terms=set(terms))
@@ -118,7 +122,7 @@ def results() -> RRV:
     # todo support post?
     qid = escape(request.args.get("qid", ""))
     if not qid:
-        return jsonify(f"Got no QID")
+        return jsonify(f"Error: Got no QID")
     lang = escape(request.args.get("lang", ""))
     if not lang:
         return jsonify("Error: No language code specified.")
