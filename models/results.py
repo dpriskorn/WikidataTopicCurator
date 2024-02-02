@@ -3,6 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
+from models.cirrussearch import CirrusSearch
 from models.enums import Source
 from models.item import Item
 from models.parameters import Parameters
@@ -32,9 +33,9 @@ class Results(BaseModel):
             for term in self.parameters.terms.search_terms:
                 query = PublishedArticleQuery(
                     parameters=self.parameters,
-                    term=term,
                     item_count=self.item_count,
                     lang=self.lang,
+                    term=term,
                 )
                 self.queries.append(query)
                 # Only run query if limit has not been reached

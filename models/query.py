@@ -1,15 +1,13 @@
 import logging
-from pprint import pprint
-from typing import List, Dict
-from urllib.parse import quote
+from typing import List, Dict, Optional
 
-import requests
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
-from models.term import Term
+from models.cirrussearch import CirrusSearch
 from models.google_scholar import GoogleScholarSearch
 from models.item import Item
 from models.parameters import Parameters
+from models.term import Term
 from models.topic_curator_base_model import TopicCuratorBaseModel
 from models.value import Value
 
@@ -20,14 +18,18 @@ class Query(TopicCuratorBaseModel):
     """We need a search_string and the parameters"""
 
     lang: str
-    parameters: Parameters
     term: Term
+    parameters: Parameters
     results: Dict = {}
     wdqs_query_string: str = ""
     items: List[Item] = list()
     lang: str = "en"
     item_count: int = 0
     has_been_run: bool = False
+
+    @property
+    def cirrussearch(self) -> CirrusSearch:
+        return self.parameters.get_cirrussearch(term=self.term)
 
     @property
     def calculated_limit(self) -> int:
@@ -60,14 +62,12 @@ class Query(TopicCuratorBaseModel):
         self.__parse_results__()
         self.has_been_run = True
 
-    @property
-    def cirrussearch_string(self):
-        return self.parameters.cirrussearch.build_search_expression(term=self.term)
-
     def __prepare_and_build_query__(
         self,
     ):
-        logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
+        logger.debug(
+            f"using cirrussearch_string: '{self.cirrussearch.cirrussearch_string}"
+        )
         self.__build_query__()
 
     # @property
@@ -95,42 +95,15 @@ class Query(TopicCuratorBaseModel):
         formatted_number = "{:,}".format(number)
         return formatted_number
 
-    @property
-    def cirrussearch_total(self) -> int:
-        logger.debug("Getting CirrusSearch total")
-        base_url = "https://www.wikidata.org/w/api.php"
-        params = {
-            "action": "query",
-            "format": "json",
-            "list": "search",
-            "formatversion": 2,
-            "srsearch": self.cirrussearch_string,
-            "srlimit": 1,
-            "srprop": "size",
-        }
-
-        response = requests.get(base_url, params=params)
-
-        if response.status_code == 200:
-            data = response.json()
-            pprint(data)
-            total_hits = data.get("query", {}).get("searchinfo", {}).get("totalhits", 0)
-            logger.debug(f"cs total: {total_hits}")
-            # format like gs total
-            return int(total_hits)
-        else:
-            logger.error(f"Unable to fetch data. Status code: {response.status_code}")
-            return 0
-
     def row_html(self, count: int) -> str:
         return f"""
         <tr>
             <td>{count}</td>
             <td>
-                <a href="{self.cirrussearch_url}">{self.term.string}</a>
+                <a href="{self.cirrussearch.cirrussearch_url}">{self.term.string}</a>
             </td>
             <td>
-                {len(self.items)} included / <a href="{self.cirrussearch_url}">{self.cirrussearch_total} total</a>
+                {len(self.items)} included / <a href="{self.cirrussearch.cirrussearch_url}">{self.cirrussearch.cirrussearch_total} total</a>
             </td>
             <td>
                 {self.has_been_run}
@@ -141,11 +114,3 @@ class Query(TopicCuratorBaseModel):
                     everywhere (fulltext search)</a>)</td>
         </tr>
         """
-
-    @property
-    def cirrussearch_url(self) -> str:
-        return (
-            f"https://www.wikidata.org/w/index.php?search="
-            f"{quote(self.parameters.cirrussearch.build_search_expression(term=self.term))}"
-            f"&title=Special%3ASearch&profile=advanced&fulltext=1&ns0=1"
-        )

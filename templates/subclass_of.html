@@ -1,0 +1,54 @@
+<html lang="en">
+
+{% include 'head.html' %}
+
+<body>
+
+{% include 'navbar.html' %}
+
+
+<main class="container mb-3">
+    <div class="row">
+        <h1>Subtopics of {{ label }}, {{ qid }}</h1>
+        <p>Go to <a href="{{ link }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>
+        <form action="/term" method="get" onsubmit="return validateForm()">
+        <input type="hidden" name="subclass_of_matched" value="true">
+        <input type="hidden" name="qid" value="{{ qid }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+        <input type="hidden" name="subgraph" value="{{ subgraph }}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Subtopic</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">CirrusSearch matches for label</th>
+                    <th scope="col" class="col-sm-1">Has been matched</th>
+                    <th scope="col">Link</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{ subtopic_html | safe }}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">All the above have been matched and all the QuickStatements
+                batches have finished running and a few minutes have passed for WDQS to update</button>
+        </form>
+    </div>
+</main>
+<script>
+    function validateForm() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        var isChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+        if (!isChecked) {
+            alert('Please match all subtopics one by one and check the checkbox before submitting.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+{% include 'footer.html' %}
+
+</body>
+</html>

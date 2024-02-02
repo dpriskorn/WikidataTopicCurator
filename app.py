@@ -3,19 +3,18 @@ from typing import List
 from urllib.parse import quote, unquote
 
 import toolforge
-from flask import Flask, render_template, redirect, request, jsonify
+from flask import Flask, render_template, redirect, request, jsonify, url_for
 from flask.typing import ResponseReturnValue as RRV
 from flask_sqlalchemy import SQLAlchemy
 from markupsafe import escape
 
-from models.cirrussearch import Cirrussearch
 from models.database.load_database_config import LoadDatabaseConfig
 from models.enums import Source, Subgraph
 from models.parameters import Parameters
 from models.results import Results
 from models.term import Term
 from models.terms import Terms
-from models.topic import TopicItem
+from models.topic_item import TopicItem
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -48,13 +47,23 @@ def store_batch():
     and encourage people to finish mathcing of topics
     (or re-run the matching if more than a year has passed)"""
     qid = escape(request.args.get("qid"))
+    lang = escape(request.args.get("lang", ""))
+    prefix = escape(request.args.get("prefix"))
+    affix = escape(request.args.get("affix"))
     count = escape(request.args.get("count"))
     to_be_matched = escape(request.args.get("to_be_matched"))
 
     # Check if all required parameters are provided
-    if qid is None or count is None or to_be_matched is None:
+    # affix can be None
+    if (
+        qid is None
+        or count is None
+        or to_be_matched is None
+        or prefix is None
+        or lang is None
+    ):
         error_response = {
-            "error": "All parameters (qid, count, to_be_matched) are required."
+            "error": "The parameters (qid, count, to_be_matched, prefix, lang) are required."
         }
         return jsonify(error_response), 400  # 400 Bad Request status code
 
@@ -74,7 +83,14 @@ def store_batch():
     try:
         from models.database.batch import Batch
 
-        new_batch = Batch(qid=qid, count=count, to_be_matched=to_be_matched)
+        new_batch = Batch(
+            qid=qid,
+            count=count,
+            to_be_matched=to_be_matched,
+            affix=affix,
+            prefix=prefix,
+            lang=lang,
+        )
         db.session.add(new_batch)
         db.session.commit()
     except Exception as e:
@@ -166,29 +182,75 @@ def subgraph() -> RRV:
         qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify(f"Error: Got no QID")
-    return render_template("subgraph.html", qid=qid, lang=lang)
+    else:
+        topic = TopicItem(qid=qid, lang=lang)
+        if not topic.is_valid:
+            return jsonify(error=invalid_format), 400
+        else:
+            return render_template("subgraph.html", qid=qid, lang=lang)
 
 
-@app.route("/term", methods=["GET", "POST"])
+@app.route("/check_subclass_of", methods=["GET", "POST"])
+def check_subclass_of() -> RRV:
+    """This is used to nudge the user to match the subclass of-items first if not already done.
+
+    Upon completion of matching of all the subclass of items, the user can proceede"""
+    raw_subgraph = escape(request.args.get("subgraph", ""))
+    lang = escape(request.args.get("lang", ""))
+    qid = escape(request.args.get("qid", ""))
+    if not lang:
+        lang = "en"
+    if not raw_subgraph:
+        # default subgraph
+        subgraph = Subgraph.SCIENTIFIC_ARTICLES
+    else:
+        try:
+            subgraph = Subgraph(raw_subgraph)
+            logger.debug(f"sucessfully parsed {subgraph.value}")
+        except ValueError:
+            return jsonify(
+                f"Error: Invalid subgraph '{raw_subgraph}', "
+                f"see {documentation_url} for documentation"
+            )
+    if not qid:
+        return jsonify(f"Error: Got no QID")
+    else:
+        topic = TopicItem(qid=qid, lang=lang)
+        if not topic.is_valid:
+            return jsonify(error=invalid_format), 400
+        else:
+            logger.debug("getting subclass of")
+            subtopics = topic.get_subtopics_as_topic_items
+            logger.debug(f"got subtopics: {subtopics}")
+            subtopics_html_list = list()
+            for subtopic in subtopics:
+                subtopics_html_list.append(subtopic.row_html(subgraph=subgraph))
+            subtopic_html = "\n".join(subtopics_html_list)
+            return render_template(
+                "subclass_of.html",
+                label=topic.label,
+                qid=qid,
+                lang=lang,
+                subgraph=subgraph.value,
+                subtopic_html=subtopic_html,
+            )
+
+
+@app.route("/term", methods=["GET"])
 def term() -> RRV:
     """We either get a get request or a post request
-    If we get arguments, prefill the template"""
-    if request.method == "POST":
-        lang = escape(request.form.get("lang", ""))
-        subgraph = escape(request.form.get("subgraph", ""))
-        qid = escape(request.form.get("qid", ""))
-        limit = escape(request.form.get("limit", default_limit))
-        cs = escape(request.form.get("cs", ""))
-        csa = escape(request.form.get("csa", ""))
-        raw_terms = request.form.getlist("terms")
-    else:
-        lang = escape(request.args.get("lang", ""))
-        subgraph = escape(request.args.get("subgraph", ""))
-        qid = escape(request.args.get("qid", ""))
-        limit = escape(request.args.get("limit", default_limit))
-        cs = escape(request.args.get("cs", ""))
-        csa = escape(request.args.get("csa", ""))
-        raw_terms = request.args.getlist("terms")
+    If we get arguments, prefill the template
+
+    If a given QID has any P279 statement we redirect to /check_subclass_of"""
+    lang = escape(request.args.get("lang", ""))
+    subgraph = escape(request.args.get("subgraph", ""))
+    qid = escape(request.args.get("qid", ""))
+    limit = escape(request.args.get("limit", default_limit))
+    cs = escape(request.args.get("cs", ""))
+    csa = escape(request.args.get("csa", ""))
+    raw_terms = request.args.getlist("terms")
+    subclass_of_matched = request.args.get("subclass_of_matched", "").lower() == "true"
+    logger.debug(f"subclass_of_matched: {subclass_of_matched}")
     if not qid:
         return jsonify(f"Error: Got no QID")
     if raw_terms:
@@ -201,29 +263,40 @@ def term() -> RRV:
         topic = TopicItem(qid=qid, lang=lang)
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
-        return render_template(
-            "term.html",
-            qid=qid,
-            limit=limit,
-            cs=cs,
-            csa=csa,
-            terms_html=user_terms.get_terms_html(topic=topic),
-            subgraph=subgraph,
-            lang=lang,
-            default_limit=default_limit,
-        )
-    else:
-        return render_template(
-            "term.html",
-            qid=qid,
-            limit=limit,
-            cs=cs,
-            csa=csa,
-            terms_html=user_terms.get_terms_html(),
-            subgraph=subgraph,
-            lang=lang,
-            default_limit=default_limit,
-        )
+        else:
+            logger.debug("got valid qid, checking subclass of")
+            has_subclass_of = True
+            if not subclass_of_matched:
+                subtopics = topic.get_subtopics_as_topic_items
+                # pprint(subtopics)
+                if subtopics:
+                    logger.debug(f"we found subtopics. redirecting")
+                    # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
+                    return redirect(
+                        url_for(
+                            "check_subclass_of", qid=qid, lang=lang, subgraph=subgraph
+                        ),
+                        302,
+                    )
+                else:
+                    has_subclass_of = False
+            if subclass_of_matched or not has_subclass_of:
+                logger.debug(
+                    "Found no subclass of this topic or the user says they are already matched"
+                )
+                return render_template(
+                    "term.html",
+                    qid=qid,
+                    limit=limit,
+                    cs=cs,
+                    csa=csa,
+                    terms_html=user_terms.get_terms_html(topic=topic),
+                    subgraph=subgraph,
+                    lang=lang,
+                    default_limit=default_limit,
+                )
+            else:
+                raise NotImplementedError("this should never be reached")
 
 
 @app.route("/results", methods=["GET"])
@@ -291,13 +364,9 @@ def results() -> RRV:
         parameters=Parameters(
             topic=topic,
             limit=limit,
-            cirrussearch=Cirrussearch(
-                user_prefix=cs_prefix,
-                affix=cs_affix,
-                topic=topic,
-                search_terms=terms,
-                subgraph=subgraph,
-            ),
+            user_prefix=cs_prefix,
+            affix=cs_affix,
+            subgraph=subgraph,
             terms=terms,
         ),
         lang=lang,

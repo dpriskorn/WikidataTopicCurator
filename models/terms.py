@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from models.enums import Source
 from models.term import Term
-from models.topic import TopicItem
+from models.topic_item import TopicItem
 
 logger = logging.getLogger(__name__)
 

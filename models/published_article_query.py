@@ -19,7 +19,7 @@ class PublishedArticleQuery(Query):
              as ?full_resources)
             WHERE {{
               hint:Query hint:optimizer "None".
-              BIND(STR('{self.cirrussearch_string}') as ?search_string)
+              BIND(STR('{self.cirrussearch.cirrussearch_string}') as ?search_string)
               SERVICE wikibase:mwapi {{
                 bd:serviceParam wikibase:api "Search";
                                 wikibase:endpoint "www.wikidata.org";
