@@ -9,7 +9,7 @@
 
 <main class="container mb-3">
     <div class="row">
-        <form id="subgraphForm" method="get">
+        <form id="langForm" method="get">
             <input type="hidden" name="subgraph" value="{{ subgraph }}">
             <div class="row">
                 <dt class="col-sm-4"><label for="qid">Topic item to work on:</label></dt>
@@ -23,7 +23,7 @@
                 <dd class="col-sm-3">
                     <input type="text" class="form-control" id="lang"
                            name="lang" maxlength="3" value="{{ lang }}"
-                           title="Input a language code supported by Wikimedia.">
+                           title="Input a language code supported by Wikimedia." required>
                 </dd>
             </dl>
             <button type="submit" class="btn btn-primary mt-3" onclick="submitForm('/subgraph')">Select subgraph</button>
@@ -34,8 +34,27 @@
 
 <script>
     function submitForm(action) {
-        document.getElementById('subgraphForm').action = action;
-        document.getElementById('subgraphForm').submit();
+        var form = document.getElementById('langForm');
+
+        // Check for required fields before submitting
+        if (validateRequiredFields(form)) {
+            form.action = action;
+            form.submit();
+        }
+        // We don't alert here because bootstrap takes care of that.
+    }
+
+    function validateRequiredFields(form) {
+        var requiredFields = form.querySelectorAll('[required]');
+        var isValid = true;
+
+        requiredFields.forEach(function (field) {
+            if (!field.value.trim()) {
+                isValid = false;
+            }
+        });
+
+        return isValid;
     }
 </script>
 
