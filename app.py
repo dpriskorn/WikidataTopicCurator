@@ -218,17 +218,19 @@ def add_main_subject() -> RRV:
         selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
         topic = escape(request.form.get("main_subject"))
         if selected_qids and topic:
-            if len(selected_qids) > 30 and os.environ.get("USER") is None:
-                # Toolforge does not have USER set
-                return jsonify(
-                    "Error: Toolforge does not support long URLs "
-                    "so we cannot process this many QIDs at once. "
-                    "An OAUTH rewrite is planned, see "
-                    "https://github.com/dpriskorn/WikidataTopicCurator/issues/5"
-                )
+            # Disabled warning, as suggested here https://phabricator.wikimedia.org/T356195
+            # if len(selected_qids) > 30 and os.environ.get("USER") is None:
+            #     # Toolforge does not have USER set
+            #     return jsonify(
+            #         "Error: Toolforge does not support long URLs "
+            #         "so we cannot process this many QIDs at once. "
+            #         "An OAUTH rewrite is planned, see "
+            #         "https://github.com/dpriskorn/WikidataTopicCurator/issues/5"
+            #     )
             # Handle the selected_qids as needed
             print(f"Got topic: {topic}")
-            print("Selected QIDs:", selected_qids)
+            print(f"Number of items: {len(selected_qids)}")
+            logger.debug("Selected QIDs:", selected_qids)
             commands = generate_qs_commands(
                 main_subject=topic, selected_qids=selected_qids
             )
