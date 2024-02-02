@@ -3,10 +3,12 @@ from typing import List
 
 from pydantic import BaseModel
 
+from models.enums import Source
 from models.item import Item
 from models.parameters import Parameters
 from models.published_article_query import PublishedArticleQuery
 from models.query import Query
+from models.term import Term
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,7 @@ class Results(BaseModel):
             logger.debug("Falling back to self.parameters.topic.label as term")
             query = PublishedArticleQuery(
                 parameters=self.parameters,
-                term=self.parameters.topic.label,
+                term=Term(string=self.parameters.topic.label, source=Source.LABEL),
                 lang=self.lang,
             )
             query.start()
