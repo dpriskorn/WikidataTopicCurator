@@ -97,6 +97,7 @@ def term() -> RRV:
             terms_html=user_terms.get_terms_html(topic=topic),
             subgraph=subgraph,
             lang=lang,
+            default_limit=default_limit
         )
     else:
         return render_template(
@@ -108,6 +109,7 @@ def term() -> RRV:
             terms_html=user_terms.get_terms_html(),
             subgraph=subgraph,
             lang=lang,
+            default_limit=default_limit
         )
 
 

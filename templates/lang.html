@@ -11,10 +11,16 @@
     <div class="row">
         <form id="subgraphForm" method="get">
             <input type="hidden" name="subgraph" value="{{ subgraph }}">
-            <input type="hidden" name="qid" value="{{ qid }}">
+            <div class="row">
+                <dt class="col-sm-4"><label for="qid">Topic item to work on:</label></dt>
+                <dd class="col-sm-3">
+                    <input type="text" class="form-control" id="qid" name="qid" value="{{ qid }}"
+                           placeholder="Q1949144"
+                           title="This is the topic to curate. Items that already have a P921 statement with this value will be excluded by default." required></dd>
+            </div>
             <dl class="row">
-                <dt class="col-sm-3">Language code:</dt>
-                <dd class="col-sm-9">
+                <dt class="col-sm-4">Language code:</dt>
+                <dd class="col-sm-3">
                     <input type="text" class="form-control" id="lang"
                            name="lang" maxlength="3" value="{{ lang }}"
                            title="Input a language code supported by Wikimedia.">
