@@ -1,0 +1,28 @@
+import logging
+from typing import Optional
+
+import yaml
+from pydantic import BaseModel
+
+from models.database.database_settings import DatabaseSettings
+
+logger = logging.getLogger(__name__)
+
+
+class LoadDatabaseConfig(BaseModel):
+    config_file_path: str = "config.yml"
+    config: Optional[DatabaseSettings] = None
+
+    def load_config(self):
+        with open("config/database.yml", "r") as yaml_file:
+            config_data = yaml.safe_load(yaml_file)
+            logger.debug(f"loaded database config")
+            # pprint(config_data)
+            db_settings = DatabaseSettings(**config_data["database"])
+            self.config = db_settings
+
+    @property
+    def get_db_uri(self) -> str:
+        if self.config is None:
+            raise ValueError("self.config was None")
+        return f"mysql://{self.config.username}:{self.config.password}@{self.config.host}:{self.config.port}/{self.config.database}"

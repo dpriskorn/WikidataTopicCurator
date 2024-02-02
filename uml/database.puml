@@ -1,0 +1,23 @@
+@startuml
+'https://plantuml.com/class-diagram
+!define PRIMARY_KEY <b><color:red>*</color></b>
+!define INDEX_KEY <b><color:green>I</color></b>
+
+class finished {
+  +qid: int INDEX_KEY
+  +username: varchar(255)
+  +date: date
+  index(qid, username, date) PRIMARY_KEY
+}
+
+class batches {
+  +index: int PRIMARY_KEY
+  +qid: int INDEX_KEY
+  +count: int
+  +to_be_matched: int
+  +timestamp: timestamp INDEX_KEY
+  index(qid, timestamp)
+}
+
+@enduml
+

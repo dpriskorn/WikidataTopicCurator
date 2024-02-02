@@ -1,0 +1,8 @@
+database:
+#  adapter: mysql2
+#  encoding: utf8
+  port: 5
+  username: topic_curator
+  password: 1234qwert
+  host: localhost
+  database: topic_curator_dev

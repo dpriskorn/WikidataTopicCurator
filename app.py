@@ -3,11 +3,13 @@ from typing import List
 from urllib.parse import quote, unquote
 
 import toolforge
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, render_template, redirect, request, jsonify
 from flask.typing import ResponseReturnValue as RRV
+from flask_sqlalchemy import SQLAlchemy
 from markupsafe import escape
 
 from models.cirrussearch import Cirrussearch
+from models.database.load_database_config import LoadDatabaseConfig
 from models.enums import Source, Subgraph
 from models.parameters import Parameters
 from models.results import Results
@@ -25,10 +27,118 @@ user_agent = toolforge.set_user_agent(
     url="https://github.com/dpriskorn/WikidataTopicCurator/",
     email="User:So9q",
 )
-default_limit = 2000
+default_limit = 8000
 documentation_url = (
     "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
 )
+
+# Setup database config
+db_config = LoadDatabaseConfig()
+db_config.load_config()
+app.config["SQLALCHEMY_DATABASE_URI"] = db_config.get_db_uri
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+
+@app.route("/store_batch", methods=["GET"])
+def store_batch():
+    """Store batches sent to QuickStatements
+
+    This enables us to show statistics in the first page
+    and encourage people to finish mathcing of topics
+    (or re-run the matching if more than a year has passed)"""
+    qid = escape(request.args.get("qid"))
+    count = escape(request.args.get("count"))
+    to_be_matched = escape(request.args.get("to_be_matched"))
+
+    # Check if all required parameters are provided
+    if qid is None or count is None or to_be_matched is None:
+        error_response = {
+            "error": "All parameters (qid, count, to_be_matched) are required."
+        }
+        return jsonify(error_response), 400  # 400 Bad Request status code
+
+    # Convert qid and count to integers
+    try:
+        count = int(count)
+        to_be_matched = int(to_be_matched)
+    except ValueError:
+        error_response = {"error": "qid and count must be integers."}
+        return jsonify(error_response), 400
+    if qid:
+        topic = TopicItem(qid=qid, lang=lang)
+        if not topic.is_valid:
+            return jsonify(error=invalid_format), 400
+
+    # Attempt to store the batch information in the database
+    try:
+        from models.database.batch import Batch
+
+        new_batch = Batch(qid=qid, count=count, to_be_matched=to_be_matched)
+        db.session.add(new_batch)
+        db.session.commit()
+    except Exception as e:
+        error_response = {"error": f"Error storing batch information: {str(e)}"}
+        return jsonify(error_response), 500  # 500 Internal Server Error status code
+
+    # Return a success message
+    success_response = {"message": "Batch information stored successfully."}
+    return jsonify(success_response)
+
+
+@app.route("/mark-as-finished", methods=["GET"])
+def mark_as_finished():
+    """Store qids as finished
+
+    This enables us to show statistics
+    in the first page by username
+    and suggest re-run of the matching
+    if more than a year has passed)"""
+    qid = escape(request.args.get("qid"))
+    username = escape(request.args.get("username"))
+
+    if qid is None or username is None:
+        error_response = {"error": 'Both "qid" and "username" parameters are required.'}
+        return jsonify(error_response), 400  # 400 Bad Request status code
+
+    try:
+        qid = int(qid)
+    except ValueError:
+        return jsonify(error="qid must be an integer."), 400
+
+    # Check if the entry already exists in the finished table
+    from models.database.finished_item import FinishedItem
+
+    existing_entry = FinishedItem.query.filter_by(qid=qid, username=username).first()
+    if existing_entry:
+        return jsonify(error="Entry already marked as finished."), 400
+
+    if qid:
+        topic = TopicItem(qid=qid, lang=lang)
+        if not topic.is_valid:
+            return jsonify(error=invalid_format), 400
+
+    # Store the finished item in the database
+    try:
+        new_finished_item = FinishedItem(qid=qid, username=username)
+        db.session.add(new_finished_item)
+        db.session.commit()
+
+        result = {
+            "message": "QID marked as finished successfully.",
+            "qid": qid,
+            "username": username,
+        }
+
+        return jsonify(result)
+
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of an error
+        error_message = f"Error storing finished item: {str(e)}"
+        return (
+            jsonify(error=error_message),
+            500,
+        )  # 500 Internal Server Error status code
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -100,7 +210,7 @@ def term() -> RRV:
             terms_html=user_terms.get_terms_html(topic=topic),
             subgraph=subgraph,
             lang=lang,
-            default_limit=default_limit
+            default_limit=default_limit,
         )
     else:
         return render_template(
@@ -112,7 +222,7 @@ def term() -> RRV:
             terms_html=user_terms.get_terms_html(),
             subgraph=subgraph,
             lang=lang,
-            default_limit=default_limit
+            default_limit=default_limit,
         )
 
 
