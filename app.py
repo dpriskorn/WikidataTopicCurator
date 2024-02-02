@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import List
 from urllib.parse import quote, unquote
 
@@ -8,11 +7,11 @@ from flask import Flask, render_template, request, redirect, jsonify
 from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
-from models.term import Term
 from models.cirrussearch import Cirrussearch
 from models.enums import Source, Subgraph
 from models.parameters import Parameters
 from models.results import Results
+from models.term import Term
 from models.terms import Terms
 from models.topic import TopicItem
 

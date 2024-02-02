@@ -70,15 +70,15 @@ class Query(TopicCuratorBaseModel):
         logger.debug(f"using cirrussearch_string: '{self.cirrussearch_string}")
         self.__build_query__()
 
-    @property
-    def get_everywhere_google_results(self) -> int:
-        gs = GoogleScholarSearch(term=self.term)
-        return gs.everywhere_total_results
-
-    @property
-    def get_in_title_google_results(self) -> int:
-        gs = GoogleScholarSearch(term=self.term)
-        return gs.in_title_total_results
+    # @property
+    # def get_everywhere_google_results(self) -> int:
+    #     gs = GoogleScholarSearch(term=self.term)
+    #     return gs.everywhere_total_results
+    #
+    # @property
+    # def get_in_title_google_results(self) -> int:
+    #     gs = GoogleScholarSearch(term=self.term)
+    #     return gs.in_title_total_results
 
     @property
     def get_in_title_google_url(self) -> str:
@@ -136,10 +136,9 @@ class Query(TopicCuratorBaseModel):
                 {self.has_been_run}
             </td>
             <td>
-            In title: <a href="{self.get_in_title_google_url}">
-                {self.formatted_google_results(number=self.get_in_title_google_results)}</a> 
-            (everywhere: <a href="{self.get_in_title_google_url}">
-                    {self.formatted_google_results(number=self.get_everywhere_google_results)}</a>)</td>
+            <a href="{self.get_in_title_google_url}">
+                in title only</a> | <a href="{self.get_in_title_google_url}">
+                    everywhere (fulltext search)</a>)</td>
         </tr>
         """
 
