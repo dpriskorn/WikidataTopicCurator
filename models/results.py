@@ -53,8 +53,6 @@ class Results(BaseModel):
             )
             query.start()
             self.queries.append(query)
-            # self.items = self.query.items
-        # print(self.query.number_of_results_text)
 
     @property
     def all_items(self) -> Set[Item]:
