@@ -15,24 +15,13 @@ Term page
 Results page
 
 ## Features
-Based on a given topic QID it fetches articles 
-matching the label, aliases or a custom user-provided term 
-of that QID that is currently missing the main subject property.
-
-After the user has approved the matches they can be sent to 
-quickstatements for batch upload.
-
-* Multi-term support
-* Populating terms from label and aliases
-* User defined terms
-* Excluding items with a certain term (via CirrusSearch affix, see below)
-* Support batch upload by sending the matches to QuickStatement
+See the documentation.
 
 ## Documentation
 https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator
 
-## Todo
-See the issues in Github. Feel free to open a new one!
+## Participating
+See the issues in Github. Feel free to open a new one or send a pull request. :)
 
 ## License
 AGPLv3+
@@ -47,6 +36,7 @@ The bootstrap layout was inspired by [Wikidata Lexeme Forms](https://lexeme-form
 * pycharm has very nice html editing support :)
 * chatgpt is very good at helping with flask apps, which really sped up development
 * bootstrap is nice, I don't have to fiddle with CSS at all, just choose a few classes and it's good enough to get out the door
+* chatgpt can generate all the javascript I'll ever need for simple projects like this one. Very nice not having to learn and keep that in memory at all.
 
 ## Effort
 This software is a product of about two weeks work of time.
