@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
