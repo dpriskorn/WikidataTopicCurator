@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Set
 
 from pydantic import BaseModel
 
@@ -17,7 +17,6 @@ class Results(BaseModel):
     lang: str
     parameters: Parameters
     queries: List[Query] = list()
-    item_count: int = 0  # only used for honoring limit
 
     def get_items(self):
         """Lookup using sparql and convert to Items
@@ -32,17 +31,16 @@ class Results(BaseModel):
             for term in self.parameters.terms.search_terms:
                 query = PublishedArticleQuery(
                     parameters=self.parameters,
-                    term=term,
-                    item_count=self.item_count,
+                    item_count=self.number_of_deduplicated_items,
                     lang=self.lang,
+                    term=term,
                 )
                 self.queries.append(query)
                 # Only run query if limit has not been reached
-                if self.item_count < self.parameters.limit:
+                if self.number_of_deduplicated_items < self.parameters.limit:
                     query.start()
-                    self.item_count += len(query.items)
                     logger.info(
-                        f"Added {len(query.items)} items, total items: {self.item_count}"
+                        f"total items: {self.number_of_deduplicated_items}"
                     )
                 else:
                     logger.debug("Limit reached")
@@ -55,16 +53,19 @@ class Results(BaseModel):
             )
             query.start()
             self.queries.append(query)
-            # self.items = self.query.items
-        # print(self.query.number_of_results_text)
 
     @property
-    def all_items(self) -> List[Item]:
+    def all_items(self) -> Set[Item]:
+        """We deduplicate the items here and return a set"""
         items = list()
         for query in self.queries:
             for item in query.items:
                 items.append(item)
-        return items
+        return set(items)
+
+    @property
+    def number_of_deduplicated_items(self):
+        return len(self.all_items)
 
     def get_item_html_rows(self):
         count = 1
