@@ -5,6 +5,9 @@ to help wikimedians curate scientific articles with topics.
 ![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/8aff0406-cf93-432b-b033-7fd09524b430)
 Start page
 
+![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/c4506983-d990-4d2b-a3c9-e375c73e7f19)
+Subtopic nudge page
+
 ![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/e050b4f2-5985-46a8-b99a-137a86af4f87)
 Term page
 
