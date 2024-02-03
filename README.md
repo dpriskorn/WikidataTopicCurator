@@ -2,11 +2,14 @@
 This is a simplified rewrite of ItemSubjector into a webapp 
 to help wikimedians curate scientific articles with topics.
 
-![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/52dc9ff4-98d8-4952-9b14-8decc6963eeb)
+![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/8aff0406-cf93-432b-b033-7fd09524b430)
 Start page
 
-![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/dd2c9b49-ffab-41a4-ae43-d8fb357518db)
-Result page
+![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/e050b4f2-5985-46a8-b99a-137a86af4f87)
+Term page
+
+![image](https://github.com/dpriskorn/WikidataTopicCurator/assets/68460690/ef5f3103-161b-45ae-bd07-cc6bd75134e3)
+Results page
 
 ## Features
 Based on a given topic QID it fetches articles 
