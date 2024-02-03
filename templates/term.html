@@ -13,7 +13,7 @@
 
 <main class="container mb-3">
     <h1>Working on {{ label }}, {{ qid }}</h1>
-    <p>Go to <a href="{{ link }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>
+    <p>Go to <a href="https://www.wikidata.org/wiki/{{ qid }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>
     <div class="row">
         <form action="/results" method="get">
             <input type="hidden" name="lang" value="{{ lang }}">

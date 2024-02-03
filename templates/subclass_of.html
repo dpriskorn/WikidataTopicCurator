@@ -10,7 +10,7 @@
 <main class="container mb-3">
     <div class="row">
         <h1>Subtopics of {{ label }}, {{ qid }}</h1>
-        <p>Go to <a href="{{ link }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>
+        <p>Go to <a href="https://www.wikidata.org/wiki/{{ qid }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>
         <form action="/term" method="get" onsubmit="return validateForm()">
         <input type="hidden" name="subclass_of_matched" value="true">
         <input type="hidden" name="qid" value="{{ qid }}">
