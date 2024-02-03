@@ -14,6 +14,12 @@ class Item(BaseModel):
     doi_id: Value = Value
     full_resources: Value = Value
 
+    def __hash__(self):
+        return hash(self.qid)
+
+    def __eq__(self, other):
+        return self.qid == other.qid
+
     @property
     def qid_uri(self) -> str:
         return self.item.value
