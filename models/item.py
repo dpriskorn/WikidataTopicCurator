@@ -6,7 +6,7 @@ from models.value import Value
 class Item(BaseModel):
     """This class models the data we get from SPARQL and converts it into a html row"""
 
-    item: Value
+    item_: Value
     itemLabel: Value
     # descriptionLabel: Value
     instance_ofLabel: Value = Value
@@ -22,11 +22,11 @@ class Item(BaseModel):
 
     @property
     def qid_uri(self) -> str:
-        return self.item.value
+        return self.item_.value
 
     @property
     def qid(self) -> str:
-        return str(self.item.value.split("/")[-1])
+        return str(self.item_.value.split("/")[-1])
 
     @property
     def label(self) -> str:
