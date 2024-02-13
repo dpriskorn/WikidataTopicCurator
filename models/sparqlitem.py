@@ -1,18 +1,18 @@
 from pydantic import BaseModel
 
-from models.value import Value
+from models.sparqlvalue import SparqlValue
 
 
-class Item(BaseModel):
+class SparqlItem(BaseModel):
     """This class models the data we get from SPARQL and converts it into a html row"""
 
-    item_: Value
-    itemLabel: Value
+    item: SparqlValue = SparqlValue
+    itemLabel: SparqlValue = SparqlValue
     # descriptionLabel: Value
-    instance_ofLabel: Value = Value
-    publicationLabel: Value = Value
-    doi_id: Value = Value
-    full_resources: Value = Value
+    instance_ofLabel: SparqlValue = SparqlValue
+    publicationLabel: SparqlValue = SparqlValue
+    doi_id: SparqlValue = SparqlValue
+    full_resources: SparqlValue = SparqlValue
 
     def __hash__(self):
         return hash(self.qid)
@@ -22,23 +22,23 @@ class Item(BaseModel):
 
     @property
     def qid_uri(self) -> str:
-        return self.item_.value_
+        return self.item.value
 
     @property
     def qid(self) -> str:
-        return str(self.item_.value_.split("/")[-1])
+        return str(self.item.value.split("/")[-1])
 
     @property
     def label(self) -> str:
-        return self.itemLabel.value_
+        return self.itemLabel.value
 
     @property
     def instance_of_label(self) -> str:
-        return self.instance_ofLabel.value_ or ""
+        return self.instance_ofLabel.value or ""
 
     @property
     def doi(self):
-        return self.doi_id.value_ or ""
+        return self.doi_id.value or ""
 
     @property
     def doi_url(self):
@@ -46,7 +46,7 @@ class Item(BaseModel):
 
     @property
     def publication_label(self) -> str:
-        return self.publicationLabel.value_ or ""
+        return self.publicationLabel.value or ""
 
     def row_html(self, count: int) -> str:
         baserow = f"""<tr>
@@ -80,7 +80,7 @@ class Item(BaseModel):
 
     @property
     def full_resources_list(self):
-        return self.full_resources.value_.split(",")
+        return self.full_resources.value.split(",")
 
     @property
     def full_resources_html(self):

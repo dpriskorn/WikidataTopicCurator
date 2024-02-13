@@ -5,11 +5,11 @@ from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
 from models.cirrussearch import CirrusSearch
 from models.google_scholar import GoogleScholarSearch
-from models.item import Item
-from models.parameters import Parameters
+from models.sparqlitem import SparqlItem
+from models.topicparameters import TopicParameters
 from models.term import Term
 from models.topic_curator_base_model import TopicCuratorBaseModel
-from models.value import Value
+from models.sparqlvalue import SparqlValue
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +19,10 @@ class Query(TopicCuratorBaseModel):
 
     lang: str
     term: Term
-    parameters: Parameters
+    parameters: TopicParameters
     results: Dict = {}
     wdqs_query_string: str = ""
-    items: List[Item] = list()
+    items: List[SparqlItem] = list()
     lang: str = "en"
     item_count: int = 0
     has_been_run: bool = False
@@ -39,13 +39,13 @@ class Query(TopicCuratorBaseModel):
         # console.print(self.results)
         for item_json in self.results["results"]["bindings"]:
             # logging.debug(f"item_json:{item_json}")
-            item = Item(
+            item = SparqlItem(
                 item=item_json["item"],
-                itemLabel=item_json.get("itemLabel", Value()),
-                instance_ofLabel=item_json.get("instance_ofLabel", Value()),
-                publicationLabel=item_json.get("publicationLabel", Value()),
-                doi_id=item_json.get("doi_id", Value()),
-                full_resources=item_json.get("full_resources", Value()),
+                itemLabel=item_json.get("itemLabel", SparqlValue()),
+                instance_ofLabel=item_json.get("instance_ofLabel", SparqlValue()),
+                publicationLabel=item_json.get("publicationLabel", SparqlValue()),
+                doi_id=item_json.get("doi_id", SparqlValue()),
+                full_resources=item_json.get("full_resources", SparqlValue()),
             )
             # pprint(item.model_dump())
             self.items.append(item)

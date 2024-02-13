@@ -7,7 +7,7 @@ from models.terms import Terms
 from models.topic_item import TopicItem
 
 
-class Parameters(BaseModel):
+class TopicParameters(BaseModel):
     topic: TopicItem
     limit: int
     terms: Terms

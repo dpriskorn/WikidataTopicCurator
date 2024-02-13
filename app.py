@@ -7,7 +7,7 @@ from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
 
 from models.enums import Source, Subgraph
-from models.parameters import Parameters
+from models.topicparameters import TopicParameters
 from models.results import Results
 from models.term import Term
 from models.terms import Terms
@@ -359,7 +359,7 @@ def results() -> RRV:
         )
     # Call the GetArticles function with the provided variables
     results = Results(
-        parameters=Parameters(
+        parameters=TopicParameters(
             topic=topic,
             limit=limit,
             user_prefix=cs_prefix,
@@ -379,7 +379,7 @@ def results() -> RRV:
         item_count=results.number_of_deduplicated_items,
         article_rows=results.get_item_html_rows(),
         qid=qid,
-        label=results.parameters_.topic.label,
+        label=results.parameters.topic.label,
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,
