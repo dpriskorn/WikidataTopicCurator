@@ -22,23 +22,23 @@ class Item(BaseModel):
 
     @property
     def qid_uri(self) -> str:
-        return self.item_.value
+        return self.item_.value_
 
     @property
     def qid(self) -> str:
-        return str(self.item_.value.split("/")[-1])
+        return str(self.item_.value_.split("/")[-1])
 
     @property
     def label(self) -> str:
-        return self.itemLabel.value
+        return self.itemLabel.value_
 
     @property
     def instance_of_label(self) -> str:
-        return self.instance_ofLabel.value or ""
+        return self.instance_ofLabel.value_ or ""
 
     @property
     def doi(self):
-        return self.doi_id.value or ""
+        return self.doi_id.value_ or ""
 
     @property
     def doi_url(self):
@@ -46,7 +46,7 @@ class Item(BaseModel):
 
     @property
     def publication_label(self) -> str:
-        return self.publicationLabel.value or ""
+        return self.publicationLabel.value_ or ""
 
     def row_html(self, count: int) -> str:
         baserow = f"""<tr>
@@ -80,7 +80,7 @@ class Item(BaseModel):
 
     @property
     def full_resources_list(self):
-        return self.full_resources.value.split(",")
+        return self.full_resources.value_.split(",")
 
     @property
     def full_resources_html(self):
