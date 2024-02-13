@@ -2,7 +2,6 @@ import logging
 from typing import List
 from urllib.parse import quote, unquote
 
-import toolforge
 from flask import Flask, render_template, redirect, request, jsonify, url_for
 from flask.typing import ResponseReturnValue as RRV
 from markupsafe import escape
@@ -19,11 +18,12 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
-user_agent = toolforge.set_user_agent(
-    "topic-curator",
-    url="https://github.com/dpriskorn/WikidataTopicCurator/",
-    email="User:So9q",
-)
+# generated using toolforge.set_user_agent(
+#     "topic-curator",
+#     url="https://github.com/dpriskorn/WikidataTopicCurator/",
+#     email="User:So9q",
+# )
+user_agent = 'topic-curator (https://github.com/dpriskorn/WikidataTopicCurator/; User:So9q) python-requests/2.31.0'
 default_limit = 8000
 documentation_url = (
     "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
