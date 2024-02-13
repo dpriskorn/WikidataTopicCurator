@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class Results(BaseModel):
     lang: str
-    parameters: Parameters
+    parameters_: Parameters
     queries: List[Query] = list()
 
     def get_items(self):
@@ -25,19 +25,19 @@ class Results(BaseModel):
         We want english label and description
         We only want scientific items which have matching labels
         """
-        if self.parameters.terms.search_terms:
+        if self.parameters_.terms.search_terms:
             """We runt multiple queries because CirrusSearch
             does not support the logical OR operator"""
-            for term in self.parameters.terms.search_terms:
+            for term in self.parameters_.terms.search_terms:
                 query = PublishedArticleQuery(
-                    parameters=self.parameters,
+                    parameters=self.parameters_,
                     item_count=self.number_of_deduplicated_items,
                     lang=self.lang,
                     term=term,
                 )
                 self.queries.append(query)
                 # Only run query if limit has not been reached
-                if self.number_of_deduplicated_items < self.parameters.limit:
+                if self.number_of_deduplicated_items < self.parameters_.limit:
                     query.start()
                     logger.info(
                         f"total items: {self.number_of_deduplicated_items}"
@@ -47,8 +47,8 @@ class Results(BaseModel):
         else:
             logger.debug("Falling back to self.parameters.topic.label as term")
             query = PublishedArticleQuery(
-                parameters=self.parameters,
-                term=Term(string=self.parameters.topic.label, source=Source.LABEL),
+                parameters=self.parameters_,
+                term=Term(string=self.parameters_.topic.label, source=Source.LABEL),
                 lang=self.lang,
             )
             query.start()

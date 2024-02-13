@@ -379,7 +379,7 @@ def results() -> RRV:
         item_count=results.number_of_deduplicated_items,
         article_rows=results.get_item_html_rows(),
         qid=qid,
-        label=results.parameters.topic.label,
+        label=results.parameters_.topic.label,
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,
