@@ -20,7 +20,9 @@ class TopicItem(TopicCuratorBaseModel):
     qid: str
     wbi: WikibaseIntegrator = WikibaseIntegrator()
     item: ItemEntity | None = None
-    model_config = ConfigDict(extra="ignore")  # dead:disable
+    model_config = ConfigDict(  # dead:disable
+        arbitrary_types_allowed=True, extra="forbid"
+    )
 
     def setup_wbi_user_agent(self):
         wbi_config["USER_AGENT"] = self.user_agent
