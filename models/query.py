@@ -1,5 +1,6 @@
 import logging
 
+from flatten_json import flatten  # type:ignore
 from wikibaseintegrator.wbi_helpers import execute_sparql_query  # type:ignore
 
 from models.cirrussearch import CirrusSearch
@@ -36,13 +37,15 @@ class Query(TopicCuratorBaseModel):
         # console.print(self.results)
         for item_json in self.results["results"]["bindings"]:
             # logging.debug(f"item_json:{item_json}")
+            item_json = flatten(item_json)
+            logging.debug(f"flattened item_json:{item_json}")
             item = SparqlItem(
-                item=item_json["item"].get("value"),
-                item_label=item_json.get("itemLabel").get("value"),
-                instance_of_label=item_json.get("instance_ofLabel").get("value"),
-                publication_label=item_json.get("publicationLabel").get("value"),
-                doi=item_json.get("doi_id").get("value"),
-                raw_full_resources=item_json.get("full_resources").get("value"),
+                item=item_json.get("item_value", ""),
+                item_label=item_json.get("itemLabel_value", ""),
+                instance_of_label=item_json.get("instance_ofLabel_value", ""),
+                publication_label=item_json.get("publicationLabel_value", ""),
+                doi=item_json.get("doi_id_value", ""),
+                raw_full_resources=item_json.get("full_resources_value", ""),
             )
             # pprint(item.model_dump())
             self.items.append(item)

@@ -422,6 +422,20 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "flatten-json"
+version = "0.1.14"
+description = "Flatten JSON objects"
+optional = false
+python-versions = "*"
+files = [
+    {file = "flatten_json-0.1.14-py3-none-any.whl", hash = "sha256:75e455dbbb5be2431546024039cac094a8ed1dfedcf36ab1e7c9d01459fa410c"},
+    {file = "flatten_json-0.1.14.tar.gz", hash = "sha256:4008b1bd81743e6fcdc29ddbb640f5c1589376116e0c8f36cb4a0003d41fe102"},
+]
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "gunicorn"
 version = "21.2.0"
 description = "WSGI HTTP Server for UNIX"
@@ -1220,6 +1234,17 @@ testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[l
 testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.1)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
+name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+
+[[package]]
 name = "soupsieve"
 version = "2.5"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -1452,4 +1477,4 @@ ujson = ">=5.9.0,<6.0.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <4.0"
-content-hash = "c72544617d991ab0b745b27476ae24fa4811f8cc8d86b64596c7334e0cac1f43"
+content-hash = "07c0431955c6447f3c72fd13cd44ecd06a8ea1c61287580e4bbf2000f934a6e3"
