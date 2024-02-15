@@ -1,12 +1,10 @@
 import logging
-from typing import Dict, List
 
-from wikibaseintegrator.wbi_helpers import execute_sparql_query
+from wikibaseintegrator.wbi_helpers import execute_sparql_query  # type:ignore
 
 from models.cirrussearch import CirrusSearch
 from models.google_scholar import GoogleScholarSearch
 from models.sparqlitem import SparqlItem
-from models.sparqlvalue import SparqlValue
 from models.term import Term
 from models.topic_curator_base_model import TopicCuratorBaseModel
 from models.topicparameters import TopicParameters
@@ -20,9 +18,9 @@ class Query(TopicCuratorBaseModel):
     lang: str
     term: Term
     parameters: TopicParameters
-    results: Dict = {}
+    results: dict = {}
     wdqs_query_string: str = ""
-    items: List[SparqlItem] = []
+    items: list[SparqlItem] = []
     item_count: int = 0
     has_been_run: bool = False
 
@@ -43,8 +41,8 @@ class Query(TopicCuratorBaseModel):
                 item_label=item_json.get("itemLabel").get("value"),
                 instance_of_label=item_json.get("instance_ofLabel").get("value"),
                 publication_label=item_json.get("publicationLabel").get("value"),
-                doi_id=item_json.get("doi_id").get("value"),
-                full_resources_list=item_json.get("full_resources").get("value"),
+                doi=item_json.get("doi_id").get("value"),
+                raw_full_resources=item_json.get("full_resources").get("value"),
             )
             # pprint(item.model_dump())
             self.items.append(item)
@@ -89,10 +87,10 @@ class Query(TopicCuratorBaseModel):
         gs = GoogleScholarSearch(term=self.term)
         return gs.everywhere_url()
 
-    @staticmethod
-    def formatted_google_results(number: int) -> str:
-        formatted_number = f"{number:,}"
-        return formatted_number
+    # @staticmethod
+    # def formatted_google_results(number: int) -> str:
+    #     formatted_number = f"{number:,}"
+    #     return formatted_number
 
     def row_html(self, count: int) -> str:
         return f"""
@@ -109,7 +107,7 @@ class Query(TopicCuratorBaseModel):
             </td>
             <td>
             <a href="{self.get_in_title_google_url}">
-                in title only</a> | <a href="{self.get_in_title_google_url}">
+                in title only</a> | <a href="{self.get_everywhere_google_url}">
                     everywhere (fulltext search)</a>)</td>
         </tr>
         """

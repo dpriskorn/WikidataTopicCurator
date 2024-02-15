@@ -1,11 +1,12 @@
 import logging
 from pprint import pprint
-from typing import Any, List, Optional
+from typing import Any
 
-from wikibaseintegrator import WikibaseIntegrator
-from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_helpers import execute_sparql_query
+from pydantic import ConfigDict
+from wikibaseintegrator import WikibaseIntegrator  # type:ignore
+from wikibaseintegrator.entities import ItemEntity  # type:ignore
+from wikibaseintegrator.wbi_config import config as wbi_config  # type:ignore
+from wikibaseintegrator.wbi_helpers import execute_sparql_query  # type:ignore
 
 from models.enums import Source, Subgraph
 from models.term import Term
@@ -18,10 +19,8 @@ class TopicItem(TopicCuratorBaseModel):
     lang: str
     qid: str
     wbi: WikibaseIntegrator = WikibaseIntegrator()
-    item: Optional[ItemEntity] = None
-
-    class Config:
-        arbitrary_types_allowed = True
+    item: ItemEntity | None = None
+    model_config = ConfigDict(extra="ignore")  # dead:disable
 
     def setup_wbi_user_agent(self):
         wbi_config["USER_AGENT"] = self.user_agent
@@ -47,8 +46,10 @@ class TopicItem(TopicCuratorBaseModel):
         return label
 
     @property
-    def aliases(self) -> List[str]:
+    def aliases(self) -> list[str]:
         self.setup_wbi_and_get_item()
+        if not self.item:
+            raise ValueError("no item")
         aliases = self.item.get(self.qid).aliases.get(language=self.lang)
         if aliases is not None:
             aliases = [str(alias) for alias in aliases]
@@ -65,7 +66,7 @@ class TopicItem(TopicCuratorBaseModel):
         return f"https://www.wikidata.org/wiki/{self.qid}"
 
     @property
-    def get_subtopics_as_topic_items(self) -> List[Any]:
+    def get_subtopics_as_topic_items(self) -> list[Any]:
         """Get all items that are subclass of this topic as TopicItem
 
         The only way to do this is via SPARQL"""
@@ -115,6 +116,8 @@ class TopicItem(TopicCuratorBaseModel):
     @property
     def description(self) -> str:
         self.setup_wbi_and_get_item()
+        if not self.item:
+            raise ValueError("no item")
         try:
             description = self.item.descriptions.get(language=self.lang).value
         except AttributeError:

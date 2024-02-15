@@ -19,27 +19,29 @@
             <input type="hidden" name="lang" value="{{ lang }}">
             <input type="hidden" name="subgraph" value="{{ subgraph }}">
             <input type="hidden" name="qid" value="{{ qid }}">
-            <dt id="toggleBtn" class="cursor-pointer">Advanced query settings (Click to expand/collapse):</dt>
-                <div class="advancedQuerySettings hidden">
-                  <div class="row mb-3">
-                    <div class="col">
-                      <label for="limit" class="form-label">Limit:</label>
-                      <input type="text" id="limit" class="form-control" name="limit" placeholder="{{ default_limit }}" title="We default to {{ default_limit }}.">
-                    </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col">
-                      <label for="csp" class="form-label">CirrusSearch prefix:</label>
-                      <input type="text" id="csp" class="form-control" name="prefix" value="" placeholder="haswbstatement:P31=Q13442814 -haswbstatement:P921=Q1334131" title="This is used mainly to control which subset of the graph to work on. Defaults to scientific articles.">
-                    </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col">
-                      <label for="csa" class="form-label">CirrusSearch affix:</label>
-                      <input type="text" id="csa" class="form-control" name="affix" placeholder="-inlabel:syndrome" title="This is used mainly to exclude terms from the results">
-                    </div>
-                  </div>
+            <dl>
+                <dt id="toggleBtn" class="cursor-pointer">Advanced query settings (Click to expand/collapse):</dt>
+            </dl>
+            <div class="advancedQuerySettings hidden">
+              <div class="row mb-3">
+                <div class="col">
+                  <label for="limit" class="form-label">Limit:</label>
+                  <input type="text" id="limit" class="form-control" name="limit" placeholder="{{ default_limit }}" title="We default to {{ default_limit }}.">
                 </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col">
+                  <label for="csp" class="form-label">CirrusSearch prefix:</label>
+                  <input type="text" id="csp" class="form-control" name="prefix" value="" placeholder="haswbstatement:P31=Q13442814 -haswbstatement:P921=Q1334131" title="This is used mainly to control which subset of the graph to work on. Defaults to scientific articles.">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col">
+                  <label for="csa" class="form-label">CirrusSearch affix:</label>
+                  <input type="text" id="csa" class="form-control" name="affix" placeholder="-inlabel:syndrome" title="This is used mainly to exclude terms from the results">
+                </div>
+              </div>
+            </div>
             <h3>Term list</h3>
             <p class="alert alert-info">At least one term is required.</p>
             <div class="row">

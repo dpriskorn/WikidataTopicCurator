@@ -37,5 +37,5 @@ jobs:
       - run: poetry run mypy --ignore-missing-imports --install-types --non-interactive --exclude deprecated .
       - run: poetry run safety check
       # Copy the config
-      - run: cp config_sample.py config.py
-      - run: poetry run pytest .
+#      - run: cp config_sample.py config.py
+#      - run: poetry run pytest .

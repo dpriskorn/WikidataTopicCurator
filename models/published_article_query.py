@@ -26,10 +26,10 @@ class PublishedArticleQuery(Query):
         # which has a hardcoded limit of 10,000 items so you will never get more matches than that
 
         """
-          MINUS {{?item wdt:P921/wdt:P279 wd:{self.parameters.topic.qid}. }}
-          MINUS {{?item wdt:P921/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
-          MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
-          MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
+        MINUS {{?item wdt:P921/wdt:P279 wd:{self.parameters.topic.qid}. }}
+        MINUS {{?item wdt:P921/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
+        MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
+        MINUS {{?item wdt:P921/wdt:P279/wdt:P279/wdt:P279/wdt:P279 wd:{self.parameters.topic.qid}. }}
         """
         self.wdqs_query_string = f"""
             #{self.user_agent}

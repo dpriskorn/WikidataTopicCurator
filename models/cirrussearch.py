@@ -1,5 +1,4 @@
 import logging
-from typing import Dict
 from urllib.parse import quote
 
 import requests
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 class CirrusSearch(BaseModel):
     """Prefix and affix are optional attributes
 
-    An exampel use of the affix is to exclude certain words from labels e.g.
+    An example use of the affix is to exclude certain words from labels e.g.
     '-inlabel:disorder' removes al items with disorder in the label
 
     The prefix decides which items to work on and which to exclude based on structured data
@@ -27,7 +26,7 @@ class CirrusSearch(BaseModel):
     subgraph: Subgraph
     user_prefix: str = ""
     affix: str = ""
-    prefix_from_config: Dict[str, str] = {}
+    prefix_from_config: dict[str, str] = {}
 
     def read_prefix_from_config(self) -> None:
         with open("config/prefix.yml") as file:

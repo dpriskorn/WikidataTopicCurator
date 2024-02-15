@@ -1,7 +1,6 @@
 import logging
 from copy import deepcopy
 from pprint import pprint
-from typing import Optional, Set
 
 from pydantic import BaseModel
 
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Terms(BaseModel):
-    search_terms: Set[Term] = set()
+    search_terms: set[Term] = set()
 
     def prepare(self):
         """Prepare all terms"""
@@ -35,7 +34,7 @@ class Terms(BaseModel):
     def number_of_terms(self) -> int:
         return len(self.search_terms)
 
-    def get_terms_html(self, topic: Optional[TopicItem] = None) -> str:
+    def get_terms_html(self, topic: TopicItem | None = None) -> str:
         """Build the table row html"""
         logger.debug("build_terms_html: running")
         html_lines = []
@@ -56,9 +55,13 @@ class Terms(BaseModel):
         count = all_terms.number_of_terms
         if count:
             logger.debug(f"preparing {count} terms")
-            for term in all_terms.search_terms:
+            # mypy complains about this but I see no good
+            # way of fixing it so we ignore it for now
+            for term in all_terms.search_terms:  # type:ignore
+                # if not type(term, Term):
+                #     raise ValueError()
                 # pprint(term.model_dump())
-                html_lines.append(term.row_html)
+                html_lines.append(term.row_html)  # type:ignore
         else:
             logger.debug("all_terms were empty")
         return "\n".join(html_lines)

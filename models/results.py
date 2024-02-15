@@ -1,5 +1,4 @@
 import logging
-from typing import List, Set
 
 from pydantic import BaseModel
 
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Results(BaseModel):
     lang: str
     parameters: TopicParameters
-    queries: List[Query] = []
+    queries: list[Query] = []
 
     def get_items(self):
         """Lookup using sparql and convert to Items
@@ -39,9 +38,7 @@ class Results(BaseModel):
                 # Only run query if limit has not been reached
                 if self.number_of_deduplicated_items < self.parameters.limit:
                     query.start()
-                    logger.info(
-                        f"total items: {self.number_of_deduplicated_items}"
-                    )
+                    logger.info(f"total items: {self.number_of_deduplicated_items}")
                 else:
                     logger.debug("Limit reached")
         else:
@@ -55,7 +52,7 @@ class Results(BaseModel):
             self.queries.append(query)
 
     @property
-    def all_items(self) -> Set[SparqlItem]:
+    def all_items(self) -> set[SparqlItem]:
         """We deduplicate the items here and return a set"""
         items = []
         for query in self.queries:

@@ -1,11 +1,10 @@
 import logging
 import os
-from typing import List
 from urllib.parse import quote, unquote
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
-from markupsafe import escape
+from markupsafe import Markup, escape
 
 from models.enums import Source, Subgraph
 from models.results import Results
@@ -24,7 +23,7 @@ invalid_format = "Not a valid QID, format must be 'Q[0-9]+'"
 #     url="https://github.com/dpriskorn/WikidataTopicCurator/",
 #     email="User:So9q",
 # )
-user_agent = 'topic-curator (https://github.com/dpriskorn/WikidataTopicCurator/; User:So9q) python-requests/2.31.0'
+user_agent = "topic-curator (https://github.com/dpriskorn/WikidataTopicCurator/; User:So9q) python-requests/2.31.0"
 default_limit = 8000
 documentation_url = (
     "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
@@ -43,7 +42,7 @@ documentation_url = (
 #     """Store batches sent to QuickStatements
 #
 #     This enables us to show statistics in the first page
-#     and encourage people to finish mathcing of topics
+#     and encourage people to finish matching of topics
 #     (or re-run the matching if more than a year has passed)"""
 #     qid = escape(request.args.get("qid"))
 #     lang = escape(request.args.get("lang", ""))
@@ -159,13 +158,13 @@ documentation_url = (
 @app.route("/", methods=["GET", "POST"])
 def lang() -> ResponseReturnValue:
     if request.method == "POST":
-        subgraph = escape(request.form.get("subgraph", ""))
-        lang = escape(request.form.get("lang", ""))
-        qid = escape(request.form.get("qid", ""))
+        subgraph = str(escape(request.form.get("subgraph", "")))
+        lang = str(escape(request.form.get("lang", "")))
+        qid = str(escape(request.form.get("qid", "")))
     else:
-        subgraph = escape(request.args.get("subgraph", ""))
-        lang = escape(request.args.get("lang", ""))
-        qid = escape(request.args.get("qid", ""))
+        subgraph = str(escape(request.args.get("subgraph", "")))
+        lang = str(escape(request.args.get("lang", "")))
+        qid = str(escape(request.args.get("qid", "")))
     if not lang:
         lang = "en"
     return render_template("lang.html", qid=qid, lang=lang, subgraph=subgraph)
@@ -190,13 +189,13 @@ def subgraph() -> ResponseReturnValue:
 
 
 @app.route("/check_subclass_of", methods=["GET", "POST"])
-def check_subclass_of() -> ResponseReturnValue:
+def check_subclass_of() -> ResponseReturnValue:  # dead:disable
     """This is used to nudge the user to match the subclass of-items first if not already done.
 
     Upon completion of matching of all the subclass of items, the user can proceede"""
-    raw_subgraph = escape(request.args.get("subgraph", ""))
-    lang = escape(request.args.get("lang", ""))
-    qid = escape(request.args.get("qid", ""))
+    raw_subgraph = str(escape(request.args.get("subgraph", "")))
+    lang = str(escape(request.args.get("lang", "")))
+    qid = str(escape(request.args.get("qid", "")))
     if not lang:
         lang = "en"
     if not raw_subgraph:
@@ -205,7 +204,7 @@ def check_subclass_of() -> ResponseReturnValue:
     else:
         try:
             subgraph = Subgraph(raw_subgraph)
-            logger.debug(f"sucessfully parsed {subgraph.value}")
+            logger.debug(f"successfully parsed {subgraph.value}")
         except ValueError:
             return jsonify(
                 f"Error: Invalid subgraph '{raw_subgraph}', "
@@ -252,13 +251,13 @@ def term() -> ResponseReturnValue:
     logger.debug(f"subclass_of_matched: {subclass_of_matched}")
     if not qid:
         return jsonify("Error: Got no QID")
-    if raw_terms:
-        terms = [Term(string=term) for term in raw_terms]
-        user_terms = Terms(search_terms=set(terms))
-        user_terms.prepare()
     else:
-        user_terms = Terms()
-    if qid:
+        if raw_terms:
+            terms = [Term(string=term, source=Source.USER) for term in raw_terms]
+            user_terms = Terms(search_terms=set(terms))
+            user_terms.prepare()
+        else:
+            user_terms = Terms()
         topic = TopicItem(qid=qid, lang=lang)
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
@@ -300,7 +299,7 @@ def term() -> ResponseReturnValue:
 
 
 @app.route("/results", methods=["GET"])
-def results() -> ResponseReturnValue:
+def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     # TODO too complex, move checking of parameters to a separate function
     qid = escape(request.args.get("qid", ""))
     if not qid:
@@ -321,7 +320,7 @@ def results() -> ResponseReturnValue:
     else:
         try:
             subgraph = Subgraph(raw_subgraph)
-            logger.debug(f"sucessfully parsed {subgraph.value}")
+            logger.debug(f"successfully parsed {subgraph.value}")
         except ValueError:
             return jsonify(
                 f"Error: Invalid subgraph '{raw_subgraph}', "
@@ -388,7 +387,7 @@ def results() -> ResponseReturnValue:
     )
 
 
-def generate_qs_commands(main_subject: str, selected_qids: List[str]):
+def generate_qs_commands(main_subject: str, selected_qids: list[Markup]):
     commands = []
     for qid in selected_qids:
         #  based on heuristic -> inferred from title
@@ -397,7 +396,7 @@ def generate_qs_commands(main_subject: str, selected_qids: List[str]):
 
 
 @app.route("/add-main-subject", methods=["POST"])
-def add_main_subject() -> ResponseReturnValue:
+def add_main_subject() -> ResponseReturnValue:  # dead:disable
     if request.method == "POST":
         selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
         topic = escape(request.form.get("main_subject"))
@@ -425,8 +424,10 @@ def add_main_subject() -> ResponseReturnValue:
             print(f"url to qs: {url}")
             return redirect(location=url, code=302)
         return jsonify("Error: No QIDs selected.")
+    else:
+        return jsonify("Error: Got no POST request")
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
