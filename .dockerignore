@@ -1,0 +1,9 @@
+**/.venv/
+**/.git/
+**/.gitignore
+**/.idea
+**/sql
+**/uml
+build_and_run_container.sh
+Dockerfile
+README.md

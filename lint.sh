@@ -1,0 +1,2 @@
+# lint the dockerfile
+docker run --rm -i hadolint/hadolint < Dockerfile
