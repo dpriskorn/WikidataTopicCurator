@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 from pprint import pprint
-from typing import Set, Optional
+from typing import Optional, Set
 
 from pydantic import BaseModel
 
@@ -38,7 +38,7 @@ class Terms(BaseModel):
     def get_terms_html(self, topic: Optional[TopicItem] = None) -> str:
         """Build the table row html"""
         logger.debug("build_terms_html: running")
-        html_lines = list()
+        html_lines = []
         all_terms = Terms()
         if topic is not None:
             logger.debug("got topic")
@@ -60,5 +60,5 @@ class Terms(BaseModel):
                 # pprint(term.model_dump())
                 html_lines.append(term.row_html)
         else:
-            logger.debug(f"all_terms were empty")
+            logger.debug("all_terms were empty")
         return "\n".join(html_lines)

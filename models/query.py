@@ -1,15 +1,15 @@
 import logging
-from typing import List, Dict
+from typing import Dict, List
 
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
 from models.cirrussearch import CirrusSearch
 from models.google_scholar import GoogleScholarSearch
 from models.sparqlitem import SparqlItem
-from models.topicparameters import TopicParameters
+from models.sparqlvalue import SparqlValue
 from models.term import Term
 from models.topic_curator_base_model import TopicCuratorBaseModel
-from models.sparqlvalue import SparqlValue
+from models.topicparameters import TopicParameters
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,7 @@ class Query(TopicCuratorBaseModel):
     parameters: TopicParameters
     results: Dict = {}
     wdqs_query_string: str = ""
-    items: List[SparqlItem] = list()
-    lang: str = "en"
+    items: List[SparqlItem] = []
     item_count: int = 0
     has_been_run: bool = False
 
@@ -41,11 +40,11 @@ class Query(TopicCuratorBaseModel):
             # logging.debug(f"item_json:{item_json}")
             item = SparqlItem(
                 item=item_json["item"],
-                itemLabel=item_json.get("itemLabel", SparqlValue()),
-                instance_ofLabel=item_json.get("instance_ofLabel", SparqlValue()),
-                publicationLabel=item_json.get("publicationLabel", SparqlValue()),
-                doi_id=item_json.get("doi_id", SparqlValue()),
-                full_resources=item_json.get("full_resources", SparqlValue()),
+                item_label=item_json.get("itemLabel").get("value"),
+                instance_of_label=item_json.get("instance_ofLabel").get("value"),
+                publication_label=item_json.get("publicationLabel").get("value"),
+                doi_id=item_json.get("doi_id").get("value"),
+                full_resources_list=item_json.get("full_resources").get("value"),
             )
             # pprint(item.model_dump())
             self.items.append(item)
@@ -92,7 +91,7 @@ class Query(TopicCuratorBaseModel):
 
     @staticmethod
     def formatted_google_results(number: int) -> str:
-        formatted_number = "{:,}".format(number)
+        formatted_number = f"{number:,}"
         return formatted_number
 
     def row_html(self, count: int) -> str:

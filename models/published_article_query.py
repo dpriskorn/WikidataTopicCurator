@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class PublishedArticleQuery(Query):
     @property
     def generate_279_minus_lines(self):
-        lines = list()
+        lines = []
         for levels in range(2, 15):
             subpath = "wdt:P921"
             path = subpath
@@ -33,8 +33,8 @@ class PublishedArticleQuery(Query):
         """
         self.wdqs_query_string = f"""
             #{self.user_agent}
-            SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel 
-            ?publicationLabel ?doi_id 
+            SELECT DISTINCT ?item ?itemLabel ?instance_ofLabel
+            ?publicationLabel ?doi_id
             (GROUP_CONCAT(DISTINCT ?full_resource; separator=",")
              as ?full_resources)
             WHERE {{

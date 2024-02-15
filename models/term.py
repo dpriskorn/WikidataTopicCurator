@@ -49,13 +49,13 @@ class Term(BaseModel):
         )
         return f"""
         <tr>
-            <td>                    
+            <td>
                 <input type="checkbox" name="terms" value="{self.string}" checked=true>
             </td>
-            <td>                    
+            <td>
                 {self.string}
             </td>
-            <td>                    
+            <td>
                 <span class="source">{self.source.value}</span>
             </td>
         </tr>

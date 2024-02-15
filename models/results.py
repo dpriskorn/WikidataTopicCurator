@@ -4,11 +4,11 @@ from typing import List, Set
 from pydantic import BaseModel
 
 from models.enums import Source
-from models.sparqlitem import SparqlItem
-from models.topicparameters import TopicParameters
 from models.published_article_query import PublishedArticleQuery
 from models.query import Query
+from models.sparqlitem import SparqlItem
 from models.term import Term
+from models.topicparameters import TopicParameters
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Results(BaseModel):
     lang: str
     parameters: TopicParameters
-    queries: List[Query] = list()
+    queries: List[Query] = []
 
     def get_items(self):
         """Lookup using sparql and convert to Items
@@ -57,7 +57,7 @@ class Results(BaseModel):
     @property
     def all_items(self) -> Set[SparqlItem]:
         """We deduplicate the items here and return a set"""
-        items = list()
+        items = []
         for query in self.queries:
             for item in query.items:
                 items.append(item)
@@ -69,7 +69,7 @@ class Results(BaseModel):
 
     def get_item_html_rows(self):
         count = 1
-        html_list = list()
+        html_list = []
         for item in self.all_items:
             html_list.append(item.row_html(count=count))
             count += 1
@@ -78,7 +78,7 @@ class Results(BaseModel):
 
     def get_query_html_rows(self):
         count = 1
-        html_list = list()
+        html_list = []
         for query in self.queries:
             html_list.append(query.row_html(count=count))
             count += 1

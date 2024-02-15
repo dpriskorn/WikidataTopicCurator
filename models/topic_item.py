@@ -1,6 +1,6 @@
 import logging
 from pprint import pprint
-from typing import List, Any, Optional
+from typing import Any, List, Optional
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.entities import ItemEntity
@@ -53,7 +53,7 @@ class TopicItem(TopicCuratorBaseModel):
         if aliases is not None:
             aliases = [str(alias) for alias in aliases]
             return aliases
-        return list()
+        return []
 
     @property
     def is_valid(self):
@@ -72,10 +72,10 @@ class TopicItem(TopicCuratorBaseModel):
         self.setup_wbi_user_agent()
         logger.debug(f"getting subtopics via WDQS for {self.qid}")
         query = f"""
-        SELECT ?item 
+        SELECT ?item
         WHERE {{
 				?item wdt:P279 wd:{self.qid}.
-        }} 
+        }}
         """
         results = execute_sparql_query(query)
         subtopic_qids = [

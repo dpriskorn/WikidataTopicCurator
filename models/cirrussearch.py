@@ -1,13 +1,13 @@
-from urllib.parse import quote
 import logging
 from typing import Dict
+from urllib.parse import quote
 
+import requests
 import yaml
 from pydantic import BaseModel
-import requests
 
-from models.term import Term
 from models.enums import Subgraph
+from models.term import Term
 from models.topic_item import TopicItem
 
 logger = logging.getLogger(__name__)
@@ -27,11 +27,11 @@ class CirrusSearch(BaseModel):
     subgraph: Subgraph
     user_prefix: str = ""
     affix: str = ""
-    prefix_from_config: Dict[str, str] = dict()
+    prefix_from_config: Dict[str, str] = {}
 
     def read_prefix_from_config(self) -> None:
-        with open("config/prefix.yml", "r") as file:
-            data = yaml.load(file, Loader=yaml.FullLoader)
+        with open("config/prefix.yml") as file:
+            data = yaml.safe_load(file)
         # Accessing the 'prefix' section
         self.prefix_from_config = data.get("prefix", {})
         for key, value in self.prefix_from_config.items():

@@ -14,9 +14,9 @@ class LoadDatabaseConfig(BaseModel):
     config: Optional[DatabaseSettings] = None
 
     def load_config(self):
-        with open("config/database.yml", "r") as yaml_file:
+        with open("config/database.yml") as yaml_file:
             config_data = yaml.safe_load(yaml_file)
-            logger.debug(f"loaded database config")
+            logger.debug("loaded database config")
             # pprint(config_data)
             db_settings = DatabaseSettings(**config_data["database"])
             self.config = db_settings

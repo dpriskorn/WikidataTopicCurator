@@ -1,23 +1,24 @@
 import logging
+import os
 from typing import List
 from urllib.parse import quote, unquote
 
-from flask import Flask, render_template, redirect, request, jsonify, url_for
-from flask.typing import ResponseReturnValue as RRV
+from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 from markupsafe import escape
 
 from models.enums import Source, Subgraph
-from models.topicparameters import TopicParameters
 from models.results import Results
 from models.term import Term
 from models.terms import Terms
 from models.topic_item import TopicItem
+from models.topicparameters import TopicParameters
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-invalid_format = f"Not a valid QID, format must be 'Q[0-9]+'"
+invalid_format = "Not a valid QID, format must be 'Q[0-9]+'"
 # generated using toolforge.set_user_agent(
 #     "topic-curator",
 #     url="https://github.com/dpriskorn/WikidataTopicCurator/",
@@ -156,7 +157,7 @@ documentation_url = (
 
 
 @app.route("/", methods=["GET", "POST"])
-def lang() -> RRV:
+def lang() -> ResponseReturnValue:
     if request.method == "POST":
         subgraph = escape(request.form.get("subgraph", ""))
         lang = escape(request.form.get("lang", ""))
@@ -171,7 +172,7 @@ def lang() -> RRV:
 
 
 @app.route("/subgraph", methods=["GET", "POST"])
-def subgraph() -> RRV:
+def subgraph() -> ResponseReturnValue:
     if request.method == "POST":
         lang = escape(request.form.get("lang", ""))
         qid = escape(request.form.get("qid", ""))
@@ -179,7 +180,7 @@ def subgraph() -> RRV:
         lang = escape(request.args.get("lang", ""))
         qid = escape(request.args.get("qid", ""))
     if not qid:
-        return jsonify(f"Error: Got no QID")
+        return jsonify("Error: Got no QID")
     else:
         topic = TopicItem(qid=qid, lang=lang)
         if not topic.is_valid:
@@ -189,7 +190,7 @@ def subgraph() -> RRV:
 
 
 @app.route("/check_subclass_of", methods=["GET", "POST"])
-def check_subclass_of() -> RRV:
+def check_subclass_of() -> ResponseReturnValue:
     """This is used to nudge the user to match the subclass of-items first if not already done.
 
     Upon completion of matching of all the subclass of items, the user can proceede"""
@@ -211,7 +212,7 @@ def check_subclass_of() -> RRV:
                 f"see {documentation_url} for documentation"
             )
     if not qid:
-        return jsonify(f"Error: Got no QID")
+        return jsonify("Error: Got no QID")
     else:
         topic = TopicItem(qid=qid, lang=lang)
         if not topic.is_valid:
@@ -220,7 +221,7 @@ def check_subclass_of() -> RRV:
             logger.debug("getting subclass of")
             subtopics = topic.get_subtopics_as_topic_items
             logger.debug(f"got subtopics: {subtopics}")
-            subtopics_html_list = list()
+            subtopics_html_list = []
             for subtopic in subtopics:
                 subtopics_html_list.append(subtopic.row_html(subgraph=subgraph))
             subtopic_html = "\n".join(subtopics_html_list)
@@ -235,7 +236,7 @@ def check_subclass_of() -> RRV:
 
 
 @app.route("/term", methods=["GET"])
-def term() -> RRV:
+def term() -> ResponseReturnValue:
     """We either get a get request or a post request
     If we get arguments, prefill the template
 
@@ -250,7 +251,7 @@ def term() -> RRV:
     subclass_of_matched = request.args.get("subclass_of_matched", "").lower() == "true"
     logger.debug(f"subclass_of_matched: {subclass_of_matched}")
     if not qid:
-        return jsonify(f"Error: Got no QID")
+        return jsonify("Error: Got no QID")
     if raw_terms:
         terms = [Term(string=term) for term in raw_terms]
         user_terms = Terms(search_terms=set(terms))
@@ -268,7 +269,7 @@ def term() -> RRV:
                 subtopics = topic.get_subtopics_as_topic_items
                 # pprint(subtopics)
                 if subtopics:
-                    logger.debug(f"we found subtopics. redirecting")
+                    logger.debug("we found subtopics. redirecting")
                     # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
                     return redirect(
                         url_for(
@@ -299,10 +300,11 @@ def term() -> RRV:
 
 
 @app.route("/results", methods=["GET"])
-def results() -> RRV:
+def results() -> ResponseReturnValue:
+    # TODO too complex, move checking of parameters to a separate function
     qid = escape(request.args.get("qid", ""))
     if not qid:
-        return jsonify(f"Error: Got no QID")
+        return jsonify("Error: Got no QID")
     lang = escape(request.args.get("lang", ""))
     if not lang:
         return jsonify("Error: No language code specified.")
@@ -339,14 +341,14 @@ def results() -> RRV:
     cs_affix = escape(unquote(request.args.get("affix", "")))
     if cs_affix:
         logger.debug(f"got cirrussearch affix: '{cs_affix}'")
-    try:
-        if limit_param:
+    if limit_param:
+        try:
             limit = int(limit_param)
-        else:
-            # Default to 50
-            limit = default_limit
-    except ValueError:
-        return jsonify(error="Limit must be an integer."), 400
+        except ValueError:
+            return jsonify(error="Limit must be an integer."), 400
+    else:
+        # Default to 50
+        limit = default_limit
     topic = TopicItem(qid=qid, lang=lang)
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
@@ -387,7 +389,7 @@ def results() -> RRV:
 
 
 def generate_qs_commands(main_subject: str, selected_qids: List[str]):
-    commands = list()
+    commands = []
     for qid in selected_qids:
         #  based on heuristic -> inferred from title
         commands.append(f"{qid}|P921|{main_subject}|S887|Q69652283")
@@ -395,7 +397,7 @@ def generate_qs_commands(main_subject: str, selected_qids: List[str]):
 
 
 @app.route("/add-main-subject", methods=["POST"])
-def add_main_subject() -> RRV:
+def add_main_subject() -> ResponseReturnValue:
     if request.method == "POST":
         selected_qids = [escape(qid) for qid in request.form.getlist("selected_qids[]")]
         topic = escape(request.form.get("main_subject"))
@@ -412,7 +414,7 @@ def add_main_subject() -> RRV:
             # Handle the selected_qids as needed
             print(f"Got topic: {topic}")
             print(f"Number of items: {len(selected_qids)}")
-            logger.debug("Selected QIDs:", selected_qids)
+            logger.debug(f"Selected QIDs: {selected_qids}")
             commands = generate_qs_commands(
                 main_subject=topic, selected_qids=selected_qids
             )
@@ -422,8 +424,9 @@ def add_main_subject() -> RRV:
             url = f"{endpoint}{quote(string=commands, safe='/|')}"
             print(f"url to qs: {url}")
             return redirect(location=url, code=302)
-        return jsonify(f"Error: No QIDs selected.")
+        return jsonify("Error: No QIDs selected.")
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)

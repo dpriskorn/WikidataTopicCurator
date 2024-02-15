@@ -22,5 +22,14 @@ RUN poetry install --no-interaction --no-ansi --without=dev
 
 COPY . ./
 
-CMD ["whereis", "gunicorn"]
+#CMD ["whereis", "gunicorn"]
+#CMD ["whereis", "poetry"]
+#CMD ["poetry", "--version"]
+#CMD ["gunicorn", "--version"]
+#CMD ["poetry run -vvv gunicorn"]
 #CMD ["poetry run gunicorn -w 30 --bind unix:/tmp/gunicorn_ipc.sock wsgi:app --timeout 60"]
+
+# configure the container to run in an executed manner
+ENTRYPOINT [ "python" ]
+
+CMD ["app.py" ]
