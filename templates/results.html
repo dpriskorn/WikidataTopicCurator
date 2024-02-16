@@ -6,6 +6,27 @@
 {% include 'navbar.html' %}
 
 <main class="container mt-4">
+    <!-- Multi-step progress bar begin -->
+    <!-- Source: https://www.geeksforgeeks.org/how-to-create-multi-step-progress-bar-using-bootstrap/ -->
+    <div class="row justify-content-center">
+        <div class="text-center">
+            <ul id="progressbar">
+                <li id="step1">
+                    <strong>Choose lang and topic</strong>
+                </li>
+                <li id="step2"><strong>Choose subgraph</strong></li>
+                <li id="step3"><strong>Process subtopics</strong></li>
+                <li id="step4" onclick="goBack()" style="cursor: pointer"><strong>Choose terms</strong></li>
+                <li class="active" id="step5"><strong>Handle results</strong></li>
+                <li id="step6"><strong>Send to QS</strong></li>
+            </ul>
+            <div class="progress">
+                <div class="progress-bar"></div>
+            </div>
+            <br>
+        </div>
+    </div>
+    <!-- Multi-step progress bar end -->
     <div class="row">
         <h1>Working on <b>{{ label }}</b>, {{ qid }}</h1>
         <p>Go to <a href="https://www.wikidata.org/wiki/{{ qid }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>

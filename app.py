@@ -155,29 +155,20 @@ documentation_url = (
 #         )  # 500 Internal Server Error status code
 
 
-@app.route("/", methods=["GET", "POST"])
-def lang() -> ResponseReturnValue:
-    if request.method == "POST":
-        subgraph = str(escape(request.form.get("subgraph", "")))
-        lang = str(escape(request.form.get("lang", "")))
-        qid = str(escape(request.form.get("qid", "")))
-    else:
-        subgraph = str(escape(request.args.get("subgraph", "")))
-        lang = str(escape(request.args.get("lang", "")))
-        qid = str(escape(request.args.get("qid", "")))
+@app.route("/", methods=["GET"])
+def index() -> ResponseReturnValue:  # dead:disable
+    subgraph = str(escape(request.args.get("subgraph", "")))
+    lang = str(escape(request.args.get("lang", "")))
+    qid = str(escape(request.args.get("qid", "")))
     if not lang:
         lang = "en"
-    return render_template("lang.html", qid=qid, lang=lang, subgraph=subgraph)
+    return render_template("index.html", qid=qid, lang=lang, subgraph=subgraph)
 
 
-@app.route("/subgraph", methods=["GET", "POST"])
+@app.route("/subgraph", methods=["GET"])
 def subgraph() -> ResponseReturnValue:
-    if request.method == "POST":
-        lang = escape(request.form.get("lang", ""))
-        qid = escape(request.form.get("qid", ""))
-    else:
-        lang = escape(request.args.get("lang", ""))
-        qid = escape(request.args.get("qid", ""))
+    lang = escape(request.args.get("lang", ""))
+    qid = escape(request.args.get("qid", ""))
     if not qid:
         return jsonify("Error: Got no QID")
     else:
@@ -188,7 +179,7 @@ def subgraph() -> ResponseReturnValue:
             return render_template("subgraph.html", qid=qid, lang=lang)
 
 
-@app.route("/check_subclass_of", methods=["GET", "POST"])
+@app.route("/check_subclass_of", methods=["GET"])
 def check_subclass_of() -> ResponseReturnValue:  # dead:disable
     """This is used to nudge the user to match the subclass of-items first if not already done.
 
