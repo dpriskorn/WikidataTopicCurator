@@ -1,5 +1,5 @@
-#FROM python:3.11-slim
-FROM python:3.11
+FROM python:3.11-slim
+#FROM python:3.11
 
 LABEL maintainer="Dennis Priskorn <priskorn@riseup.net>"
 
@@ -30,6 +30,9 @@ COPY . ./
 #CMD ["poetry run gunicorn -w 30 --bind unix:/tmp/gunicorn_ipc.sock wsgi:app --timeout 60"]
 
 # configure the container to run in an executed manner
-ENTRYPOINT [ "python" ]
-
-CMD ["app.py" ]
+# ENTRYPOINT [ "python" ]
+#
+# CMD ["app.py" ]
+# Run in production using gunicorn and threaded using 20 workers
+#CMD ["poetry", "run", "gunicorn", "-vvv","-w", "20", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["poetry", "run", "gunicorn", "-w", "20", "-b", "0.0.0.0:5000", "app:app"]
