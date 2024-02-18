@@ -29,4 +29,6 @@ COPY . ./
 
 # Run in production using gunicorn and threaded using 20 workers
 # We bind via port, not socket
-CMD ["poetry", "run", "gunicorn", "-w", "20", "-b", "0.0.0.0:5000", "app:app"]
+# We increase the to 45s from the default 30 because
+# getting data from SPARQL and for labels is quite slow
+CMD ["poetry", "run", "gunicorn", "-w", "20", "-b", "0.0.0.0:5000", "app:app", "--timeout", "45"]
