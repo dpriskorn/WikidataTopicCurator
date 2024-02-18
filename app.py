@@ -1,7 +1,9 @@
+import asyncio
 import logging
 import os
 from urllib.parse import quote, unquote
 
+import requests
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
 from markupsafe import Markup, escape
@@ -204,12 +206,12 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
     if not qid:
         return jsonify("Error: Got no QID")
     else:
-        topic = TopicItem(qid=qid, lang=lang)
+        topic = TopicItem(qid=qid, lang=lang, session=requests.session())
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("getting subclass of")
-            subtopics = topic.get_subtopics_as_topic_items
+            subtopics = asyncio.run(topic.get_subtopics_as_topic_items, debug=False)
             logger.debug(f"got subtopics: {subtopics}")
             subtopics_html_list = []
             for subtopic in subtopics:
@@ -217,7 +219,7 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
             subtopic_html = "\n".join(subtopics_html_list)
             return render_template(
                 "subclass_of.html",
-                label=topic.label,
+                label=topic.get_label,
                 qid=qid,
                 lang=lang,
                 subgraph=subgraph.value,
@@ -254,28 +256,21 @@ def term() -> ResponseReturnValue:
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("got valid qid, checking subclass of")
-            has_subclass_of = True
-            if not subclass_of_matched:
-                subtopics = topic.get_subtopics_as_topic_items
-                # pprint(subtopics)
-                if subtopics:
-                    logger.debug("we found subtopics. redirecting")
-                    # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
-                    return redirect(
-                        url_for(
-                            "check_subclass_of", qid=qid, lang=lang, subgraph=subgraph
-                        ),
-                        302,
-                    )
-                else:
-                    has_subclass_of = False
-            if subclass_of_matched or not has_subclass_of:
+            has_subtopic = topic.has_subtopic
+            if not subclass_of_matched and has_subtopic:
+                logger.debug("we found subtopics. redirecting")
+                # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
+                return redirect(
+                    url_for("check_subclass_of", qid=qid, lang=lang, subgraph=subgraph),
+                    302,
+                )
+            if subclass_of_matched or not has_subtopic:
                 logger.debug(
                     "Found no subclass of this topic or the user says they are already matched"
                 )
                 return render_template(
                     "term.html",
-                    label=topic.label,
+                    label=topic.get_label,
                     qid=qid,
                     limit=limit,
                     cs=cs,
@@ -343,7 +338,7 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
-    if topic.label is None or not topic.label:
+    if not topic.get_label:
         # avoid hardcoding english here
         return jsonify(
             f"topic label was empty, please go add an "
@@ -363,15 +358,13 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     )
     # Run the queries
     results.get_items()
-    # todo propagate all parameters so we can increase
-    #  the limit with a single click
     return render_template(
         ["results.html"],
         queries=results.get_query_html_rows(),
         item_count=results.number_of_deduplicated_items,
         article_rows=results.get_item_html_rows(),
         qid=qid,
-        label=results.parameters.topic.label,
+        label=results.parameters.topic.get_label,
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,
@@ -421,4 +414,4 @@ def add_main_subject() -> ResponseReturnValue:  # dead:disable
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(debug=True, host="0.0.0.0", port=port)

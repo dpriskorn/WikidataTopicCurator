@@ -41,10 +41,10 @@ class Terms(BaseModel):
         all_terms = Terms()
         if topic is not None:
             logger.debug("got topic")
-            label = Term(string=topic.label, source=Source.LABEL)
+            label = Term(string=topic.get_label, source=Source.LABEL)
             all_terms.search_terms.add(label)
             logger.debug(f"added label: {label.string}")
-            for term in topic.aliases:
+            for term in topic.get_aliases:
                 alias = Term(string=term, source=Source.ALIAS)
                 all_terms.search_terms.add(alias)
         else:

@@ -1,0 +1,2 @@
+class WikibaseRestApiError(BaseException):
+    pass

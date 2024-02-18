@@ -45,7 +45,7 @@ class Results(BaseModel):
             logger.debug("Falling back to self.parameters.topic.label as term")
             query = PublishedArticleQuery(
                 parameters=self.parameters,
-                term=Term(string=self.parameters.topic.label, source=Source.LABEL),
+                term=Term(string=self.parameters.topic.get_label, source=Source.LABEL),
                 lang=self.lang,
             )
             query.start()
