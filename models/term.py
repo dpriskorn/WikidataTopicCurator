@@ -29,8 +29,12 @@ class Term(BaseModel):
         logger.debug(f"preparing: {self.string}")
         self.lower()
         self.remove_dashes()
+        self.escape_single_quotes()
         # logger.debug(f"result: {self.string}")
         return self
+
+    def escape_single_quotes(self):
+        self.string = self.string.replace("'", "'")
 
     def remove_dashes(self):
         self.string = self.string.replace("-", " ")
