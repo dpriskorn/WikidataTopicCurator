@@ -48,7 +48,7 @@ class Query(TopicCuratorBaseModel):
         for item_json in self.__execute__()["results"]["bindings"]:
             # logging.debug(f"item_json:{item_json}")
             item_json = flatten(item_json)
-            logging.debug(f"flattened item_json:{item_json}")
+            # logging.debug(f"flattened item_json:{item_json}")
             item = SparqlItem(
                 item=item_json.get("item_value", ""),
                 item_label=item_json.get("itemLabel_value", ""),
