@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from functools import lru_cache
+from typing import Any
 
 import aiohttp
 
@@ -28,25 +30,36 @@ class WikibaseRestApi(TopicCuratorBaseModel):
                         f"Status code: {response.status}, see {url}"
                     )
 
-    async def get_item_data(self, qid):
+    async def get_item_data(self, qid: str) -> Any:
         tasks = [
             self.fetch_data(qid, "labels"),
             self.fetch_data(qid, "descriptions"),
             self.fetch_data(qid, "aliases"),
         ]
         results = await asyncio.gather(*tasks)
-        return WikibaseRestItem(
+        label = results[0].get(self.lang, "Label missing in this language, please fix")
+        description = results[1].get(
+            self.lang, "Description missing in this language, please fix"
+        )
+        aliases = results[2].get(self.lang, [])
+        logger.debug(
+            f"Got {qid}. Label: '{label}'. Description: '{description}'. Aliases '{aliases}'"
+        )
+        from models.topic_item import TopicItem
+
+        return TopicItem(
             qid=qid,
-            label=results[0].get(self.lang, ""),
-            description=results[1].get(self.lang, ""),
-            aliases=results[2].get(self.lang, []),
+            label=label,
+            description=description,
+            aliases=aliases,
             lang=self.lang,
         )
 
-    async def fetch_all_items(self) -> list[WikibaseRestItem]:
+    async def fetch_all_items(self) -> list[Any]:
         logger.info("Fetching item data from Wikibase REST API asynchronously")
         items = []
         for qid in self.qids:
+            logger.debug(f"Fetching item data for {qid}")
             item = await self.get_item_data(qid=qid)
             items.append(item)
         return items

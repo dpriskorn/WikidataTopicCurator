@@ -55,6 +55,10 @@ class CirrusSearch(BaseModel):
     @property
     def cirrussearch_total(self) -> int:
         logger.debug("Getting CirrusSearch total")
+        if not self.term.string:
+            # Return 0 early if string is empty
+            logger.debug("Empty string, returning 0.")
+            return 0
         base_url = "https://www.wikidata.org/w/api.php"
         params = {
             "action": "query",

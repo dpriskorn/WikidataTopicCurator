@@ -211,8 +211,9 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("getting subclass of")
+            # TODO replace this with SPARQL to the Freibug QLever endpoint
             subtopics = asyncio.run(topic.get_subtopics_as_topic_items, debug=False)
-            logger.debug(f"got subtopics: {subtopics}")
+            # logger.debug(f"got subtopics: {subtopics}")
             subtopics_html_list = []
             for subtopic in subtopics:
                 subtopics_html_list.append(subtopic.row_html(subgraph=subgraph))
