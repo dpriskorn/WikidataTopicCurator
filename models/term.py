@@ -48,9 +48,9 @@ class Term(BaseModel):
 
     @property
     def row_html(self) -> str:
-        logger.debug(
-            f"building html for term '{self.string}' with source '{self.source.value}'"
-        )
+        # logger.debug(
+        #     f"building html for term '{self.string}' with source '{self.source.value}'"
+        # )
         return f"""
         <tr>
             <td>

@@ -1,5 +1,8 @@
+# ruff: noqa: B019
+
 import logging
 import time
+from functools import lru_cache
 from typing import Any
 
 import requests
@@ -12,7 +15,6 @@ from wikibaseintegrator.wbi_helpers import execute_sparql_query  # type:ignore
 
 from models.enums import Subgraph
 from models.exceptions import QleverError, WikibaseRestApiError
-from models.qlever import QleverIntegrator
 from models.wikibase_rest.item import WikibaseRestItem
 
 logger = logging.getLogger(__name__)
@@ -25,6 +27,12 @@ class TopicItem(WikibaseRestItem):
     model_config = ConfigDict(  # dead:disable
         arbitrary_types_allowed=True, extra="forbid"
     )
+
+    def __eq__(self, other):
+        return self.qid == other.qid
+
+    def __hash__(self):
+        return hash(self.qid)
 
     # def setup_wbi_user_agent(self):
     #     wbi_config["USER_AGENT"] = self.user_agent
@@ -58,6 +66,31 @@ class TopicItem(WikibaseRestItem):
     # else:
     #     return False
 
+    @lru_cache(maxsize=128)
+    def execute_qlever_sparql_query(
+        self,
+        query: str,
+        action: str = "json_export",
+        endpoint: str = "https://qlever.cs.uni-freiburg.de/api/wikidata",
+    ) -> dict[str, Any]:
+        if action not in ["tsv_export", "json_export"]:
+            raise QleverError(f"Action {action} is not supported")
+        params = {
+            "query": query,
+            "action": "json_export",
+        }
+        try:
+            response = self.session.get(
+                endpoint,
+                params=params,
+                headers=self.headers,
+            )
+        except requests.exceptions.ConnectionError:
+            raise QleverError(
+                "ConnectionError"
+            ) from requests.exceptions.ConnectionError
+        return response.json()
+
     @property
     def get_subtopics_as_topic_items(self) -> list[Any]:
         """Get all items that are subclass of this topic as TopicItem
@@ -86,8 +119,7 @@ class TopicItem(WikibaseRestItem):
           }}
         }}
         """
-        qi = QleverIntegrator()
-        results = qi.execute_sparql_query(query=query)
+        results = self.execute_qlever_sparql_query(query=query)
         status = results.get("status")
         if status == "ERROR":
             raise QleverError(results.get("exception"))
@@ -130,7 +162,7 @@ class TopicItem(WikibaseRestItem):
         """This function uses the async fetched values"""
         if not subgraph:
             raise ValueError("subgraph missing")
-        logger.debug(f"Building row html for {self.qid}")
+        # logger.debug(f"Building row html for {self.qid}")
         match_url = f"/term?lang={self.lang}&qid={self.qid}&subgraph={subgraph.value}"
         # from models.cirrussearch import CirrusSearch
         #
