@@ -31,6 +31,7 @@
     </div>
     <!-- Multi-step progress bar end -->
     <div class="row">
+        {% include 'goto.html' %}
         <form action="/term" method="get">
             <input type="hidden" name="lang" value="{{ lang }}">
             <input type="hidden" name="qid" value="{{ qid }}">
