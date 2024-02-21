@@ -9,9 +9,6 @@ import requests
 from flatten_json import flatten_json  # type:ignore
 from pydantic import ConfigDict
 from requests import Session
-from wikibaseintegrator import WikibaseIntegrator  # type:ignore
-from wikibaseintegrator.entities import ItemEntity  # type:ignore
-from wikibaseintegrator.wbi_helpers import execute_sparql_query  # type:ignore
 
 from models.enums import Subgraph
 from models.exceptions import QleverError, WikibaseRestApiError
