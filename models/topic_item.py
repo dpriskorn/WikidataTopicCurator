@@ -1,17 +1,19 @@
 import logging
+import time
 from typing import Any
 
 import requests
+from flatten_json import flatten_json  # type:ignore
 from pydantic import ConfigDict
 from requests import Session
 from wikibaseintegrator import WikibaseIntegrator  # type:ignore
 from wikibaseintegrator.entities import ItemEntity  # type:ignore
-from wikibaseintegrator.wbi_config import config as wbi_config  # type:ignore
 from wikibaseintegrator.wbi_helpers import execute_sparql_query  # type:ignore
 
 from models.enums import Subgraph
-from models.exceptions import WikibaseRestApiError
-from models.wikibase_rest import WikibaseRestApi, WikibaseRestItem
+from models.exceptions import QleverError, WikibaseRestApiError
+from models.qlever import QleverIntegrator
+from models.wikibase_rest.item import WikibaseRestItem
 
 logger = logging.getLogger(__name__)
 
@@ -24,29 +26,8 @@ class TopicItem(WikibaseRestItem):
         arbitrary_types_allowed=True, extra="forbid"
     )
 
-    def setup_wbi_user_agent(self):
-        wbi_config["USER_AGENT"] = self.user_agent
-
-    # @property
-    # def label(self):
-    #     api = WikibaseRestApi(qid=self.qid, lang=self.lang, session=self.session)
-    #     label = api.get_label
-    #     if label is None or not label:
-    #         label = "Label missing in this language, please fix"
-    #     return label
-    #
-    # @property
-    # def description(self) -> str:
-    #     api = WikibaseRestApi(qid=self.qid, lang=self.lang, session=self.session)
-    #     description = api.get_description
-    #     if description is None or not description:
-    #         description = "Description missing in this language, please fix"
-    #     return description
-    #
-    # @property
-    # def aliases(self) -> list[str]:
-    #     api = WikibaseRestApi(qid=self.qid, lang=self.lang, session=self.session)
-    #     return api.get_aliases
+    # def setup_wbi_user_agent(self):
+    #     wbi_config["USER_AGENT"] = self.user_agent
 
     @property
     def is_valid(self):
@@ -57,54 +38,93 @@ class TopicItem(WikibaseRestItem):
     def url(self):
         return f"https://www.wikidata.org/wiki/{self.qid}"
 
-    @property
-    def has_subtopic(self) -> bool:
-        self.setup_wbi_user_agent()
-        logger.debug(f"checking if any subtopics via WDQS for {self.qid}")
-        query = f"""
-        SELECT (count(?item) as ?count)
-        WHERE {{
-                ?item wdt:P279 wd:{self.qid}.
-        }}
-        """
-        results = execute_sparql_query(query=query, endpoint="")
-        count = int(results["results"]["bindings"][0]["count"]["value"])
-        logger.debug(f"subtopics found: {count}")
-        boolean = bool(count)
-        logger.debug(f"subtopics found: {boolean}")
-        return boolean
-        #     return True
-        # else:
-        #     return False
+    # @property
+    # def has_subtopic(self) -> bool:
+    #     self.setup_wbi_user_agent()
+    #     logger.debug(f"checking if any subtopics via WDQS for {self.qid}")
+    #     query = f"""
+    #     SELECT (count(?item) as ?count)
+    #     WHERE {{
+    #             ?item wdt:P279 wd:{self.qid}.
+    #     }}
+    #     """
+    #     results = execute_sparql_query(query=query, endpoint="")
+    #     count = int(results["results"]["bindings"][0]["count"]["value"])
+    #     logger.debug(f"subtopics found: {count}")
+    #     boolean = bool(count)
+    #     logger.debug(f"subtopics found: {boolean}")
+    #     return boolean
+    #     return True
+    # else:
+    #     return False
 
     @property
-    async def get_subtopics_as_topic_items(self) -> list[Any]:
+    def get_subtopics_as_topic_items(self) -> list[Any]:
         """Get all items that are subclass of this topic as TopicItem
         The only way to do this is via SPARQL"""
-        self.setup_wbi_user_agent()
+        # Start measuring execution time
+        start_time = time.time()
+        # self.setup_wbi_user_agent()
         # self.get_item()
-        logger.debug(f"getting subtopics via WDQS for {self.qid}")
+        logger.debug(f"getting subtopics via QLever for {self.qid}")
         query = f"""
-        SELECT ?item
+        PREFIX wd: <http://www.wikidata.org/entity/>
+        PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX schema: <http://schema.org/>
+
+        SELECT ?item ?itemLabel ?itemDescription
         WHERE {{
-				?item wdt:P279 wd:{self.qid}.
+          ?item wdt:P279 wd:{self.qid}. # Replace QID_VALUE with the QID you want to use
+          OPTIONAL {{
+            ?item rdfs:label ?itemLabel.
+            FILTER(LANG(?itemLabel) = "{self.lang}")
+          }}
+          OPTIONAL {{
+            ?item schema:description ?itemDescription.
+            FILTER(LANG(?itemDescription) = "{self.lang}")
+          }}
         }}
         """
-        results = execute_sparql_query(query)
-        subtopic_qids = [
-            result["item"]["value"].split("/")[-1]
-            for result in results["results"]["bindings"]
-            if results.get("results") and results.get("results").get("bindings")
-        ]
-        logger.info(f"Got {len(subtopic_qids)} subtopics")
+        qi = QleverIntegrator()
+        results = qi.execute_sparql_query(query=query)
+        status = results.get("status")
+        if status == "ERROR":
+            raise QleverError(results.get("exception"))
+        # pprint(results)
+        # exit()
+        bindings = results["results"]["bindings"]
+        subtopics = []
+        for result in bindings:
+            data = flatten_json(result)
+            # pprint(data)
+            # exit()
+            subtopics.append(
+                TopicItem(
+                    lang=self.lang,
+                    qid=data.get("item_value").split("/")[-1],
+                    label=data.get(
+                        "itemLabel_value", "Label missing in this language, please fix"
+                    ),
+                    description=data.get(
+                        "itemDescription_value",
+                        "Description missing in this language, please fix",
+                    ),
+                )
+            )
+        #     = [
+        #     result["item"]["value"].split("/")[-1]
+        #     for result in results["results"]["bindings"]
+        #     if results.get("results") and results.get("results").get("bindings")
+        # ]
+        logger.info(f"Got {len(subtopics)} subtopics")
         # pprint(subtopic_qids)
-        # qids = ["Q123", "Q456", "Q7839"]  # Example list of IDs
-        api = WikibaseRestApi(qids=subtopic_qids, lang=self.lang)
-        items = await api.fetch_all_items()
-
-        # for item in items:
-        #     print(item.model_dump())
-        return items
+        # Calculate execution time
+        execution_time = time.time() - start_time
+        logger.info(
+            f"SPARQL query and object conversion time: {execution_time} seconds"
+        )
+        return subtopics
 
     def row_html(self, subgraph: Subgraph) -> str:
         """This function uses the async fetched values"""

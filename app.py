@@ -210,9 +210,8 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
         else:
-            logger.debug("getting subclass of")
-            # TODO replace this with SPARQL to the Freibug QLever endpoint
-            subtopics = asyncio.run(topic.get_subtopics_as_topic_items, debug=False)
+            logger.debug("getting subtopics")
+            subtopics = topic.get_subtopics_as_topic_items
             # logger.debug(f"got subtopics: {subtopics}")
             subtopics_html_list = []
             for subtopic in subtopics:
@@ -257,7 +256,7 @@ def term() -> ResponseReturnValue:
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("got valid qid, checking subclass of")
-            has_subtopic = topic.has_subtopic
+            has_subtopic = topic.get_subtopics_as_topic_items
             if not subclass_of_matched and has_subtopic:
                 logger.debug("we found subtopics. redirecting")
                 # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
