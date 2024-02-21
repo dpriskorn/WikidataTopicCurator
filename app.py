@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from urllib.parse import quote, unquote
 
 import requests
@@ -15,7 +16,7 @@ from models.topic_item import TopicItem
 from models.topicparameters import TopicParameters
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 invalid_format = "Not a valid QID, format must be 'Q[0-9]+'"
@@ -355,6 +356,8 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
             f"in Wikidata. See {topic.url}"
         )
     # Call the GetArticles function with the provided variables
+    # Start measuring execution time
+    start_time = time.time()
     results = Results(
         parameters=TopicParameters(
             topic=topic,
@@ -368,6 +371,9 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     )
     # Run the queries
     results.get_items()
+    # Calculate execution time
+    execution_time = time.time() - start_time
+    logger.info(f"Results time: {execution_time} seconds")
     label = results.parameters.topic.get_label()
     logger.info(f"label cache: {results.parameters.topic.get_label.cache_info()}")
     return render_template(
