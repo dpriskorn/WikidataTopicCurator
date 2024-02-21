@@ -30,7 +30,8 @@ class TopicItem(WikibaseRestItem):
         return self.qid == other.qid
 
     def __hash__(self):
-        return hash(self.qid)
+        # Hash both lang and qid to avoid getting wrong labels and descriptions.
+        return hash(self.qid + self.lang)
 
     @property
     def is_valid(self):
