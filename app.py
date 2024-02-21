@@ -210,15 +210,21 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("getting subtopics")
-            subtopics = topic.get_subtopics_as_topic_items
+            subtopics = topic.get_subtopics_as_topic_items()
+            logger.info(
+                f"subtopic cache: {topic.get_subtopics_as_topic_items.cache_info()}"
+            )
             # logger.debug(f"got subtopics: {subtopics}")
             subtopics_html_list = []
             for subtopic in subtopics:
                 subtopics_html_list.append(subtopic.row_html(subgraph=subgraph))
+                logger.info(f"row html cache: {subtopic.row_html.cache_info()}")
             subtopic_html = "\n".join(subtopics_html_list)
+            label = topic.get_label()
+            logger.info(f"label cache: {topic.get_label.cache_info()}")
             return render_template(
                 "subclass_of.html",
-                label=topic.get_label,
+                label=label,
                 qid=qid,
                 lang=lang,
                 subgraph=subgraph.value,
@@ -255,7 +261,10 @@ def term() -> ResponseReturnValue:
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("got valid qid, checking subclass of")
-            has_subtopic = topic.get_subtopics_as_topic_items
+            has_subtopic = topic.get_subtopics_as_topic_items()
+            logger.info(
+                f"subtopic cache: {topic.get_subtopics_as_topic_items.cache_info()}"
+            )
             if not subclass_of_matched and has_subtopic:
                 logger.debug("we found subtopics. redirecting")
                 # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
@@ -267,9 +276,11 @@ def term() -> ResponseReturnValue:
                 logger.debug(
                     "Found no subclass of this topic or the user says they are already matched"
                 )
+                label = topic.get_label()
+                logger.info(f"label cache: {topic.get_label.cache_info()}")
                 return render_template(
                     "term.html",
-                    label=topic.get_label,
+                    label=label,
                     qid=qid,
                     limit=limit,
                     cs=cs,
@@ -337,11 +348,11 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
-    if not topic.get_label:
-        # avoid hardcoding english here
+    if not topic.get_label():
         return jsonify(
             f"topic label was empty, please go add an "
-            f"english label in Wikidata. See {topic.url}"
+            f"label for language with language code {lang} "
+            f"in Wikidata. See {topic.url}"
         )
     # Call the GetArticles function with the provided variables
     results = Results(
@@ -357,13 +368,15 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     )
     # Run the queries
     results.get_items()
+    label = results.parameters.topic.get_label()
+    logger.info(f"label cache: {results.parameters.topic.get_label.cache_info()}")
     return render_template(
         ["results.html"],
         queries=results.get_query_html_rows(),
         item_count=results.number_of_deduplicated_items,
         article_rows=results.get_item_html_rows(),
         qid=qid,
-        label=results.parameters.topic.get_label,
+        label=label,
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,

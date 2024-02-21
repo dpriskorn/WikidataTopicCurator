@@ -12,6 +12,7 @@ from requests import Session
 
 from models.enums import Subgraph
 from models.exceptions import QleverError, WikibaseRestApiError
+from models.qlever import QleverIntegrator
 from models.wikibase_rest.item import WikibaseRestItem
 
 logger = logging.getLogger(__name__)
@@ -31,9 +32,6 @@ class TopicItem(WikibaseRestItem):
     def __hash__(self):
         return hash(self.qid)
 
-    # def setup_wbi_user_agent(self):
-    #     wbi_config["USER_AGENT"] = self.user_agent
-
     @property
     def is_valid(self):
         # logger.debug(f'{self.qid.startswith("Q")} and {self.qid[1:].isdigit()}')
@@ -43,55 +41,11 @@ class TopicItem(WikibaseRestItem):
     def url(self):
         return f"https://www.wikidata.org/wiki/{self.qid}"
 
-    # @property
-    # def has_subtopic(self) -> bool:
-    #     self.setup_wbi_user_agent()
-    #     logger.debug(f"checking if any subtopics via WDQS for {self.qid}")
-    #     query = f"""
-    #     SELECT (count(?item) as ?count)
-    #     WHERE {{
-    #             ?item wdt:P279 wd:{self.qid}.
-    #     }}
-    #     """
-    #     results = execute_sparql_query(query=query, endpoint="")
-    #     count = int(results["results"]["bindings"][0]["count"]["value"])
-    #     logger.debug(f"subtopics found: {count}")
-    #     boolean = bool(count)
-    #     logger.debug(f"subtopics found: {boolean}")
-    #     return boolean
-    #     return True
-    # else:
-    #     return False
-
-    @lru_cache(maxsize=128)
-    def execute_qlever_sparql_query(
-        self,
-        query: str,
-        action: str = "json_export",
-        endpoint: str = "https://qlever.cs.uni-freiburg.de/api/wikidata",
-    ) -> dict[str, Any]:
-        if action not in ["tsv_export", "json_export"]:
-            raise QleverError(f"Action {action} is not supported")
-        params = {
-            "query": query,
-            "action": "json_export",
-        }
-        try:
-            response = self.session.get(
-                endpoint,
-                params=params,
-                headers=self.headers,
-            )
-        except requests.exceptions.ConnectionError:
-            raise QleverError(
-                "ConnectionError"
-            ) from requests.exceptions.ConnectionError
-        return response.json()
-
-    @property
+    @lru_cache
     def get_subtopics_as_topic_items(self) -> list[Any]:
         """Get all items that are subclass of this topic as TopicItem
         The only way to do this is via SPARQL"""
+        logger.debug("get_subtopics_as_topic_items: running")
         # Start measuring execution time
         start_time = time.time()
         # self.setup_wbi_user_agent()
@@ -116,7 +70,8 @@ class TopicItem(WikibaseRestItem):
           }}
         }}
         """
-        results = self.execute_qlever_sparql_query(query=query)
+        qi = QleverIntegrator()
+        results = qi.execute_qlever_sparql_query(query=query)
         status = results.get("status")
         if status == "ERROR":
             raise QleverError(results.get("exception"))
@@ -155,6 +110,7 @@ class TopicItem(WikibaseRestItem):
         )
         return subtopics
 
+    @lru_cache
     def row_html(self, subgraph: Subgraph) -> str:
         """This function uses the async fetched values"""
         if not subgraph:
@@ -187,7 +143,7 @@ class TopicItem(WikibaseRestItem):
         </tr>
         """
 
-    @property
+    @lru_cache
     def get_label(self) -> str:
         """This is slow"""
         url = f"{self.base_url}/entities/items/{self.qid}/labels"
@@ -197,7 +153,7 @@ class TopicItem(WikibaseRestItem):
         else:
             raise WikibaseRestApiError(f"got {response.status_code} from Wikibase")
 
-    @property
+    @lru_cache
     def get_aliases(self) -> list[str]:
         """This is slow"""
         url = f"{self.base_url}/entities/items/{self.qid}/aliases"
