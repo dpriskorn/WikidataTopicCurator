@@ -28,7 +28,7 @@
     </div>
     <!-- Multi-step progress bar end -->
     <div class="row">
-        <h1>Working on <b>{{ label }}</b>, {{ qid }}</h1>
+        {% include 'working_on.html' %}
         {% include 'goto.html' %}
         <h2>CirrusSearch query results in Wikidata</h2>
         <p>Language code: {{ lang }} | Subgraph: {{ subgraph }}.</p>

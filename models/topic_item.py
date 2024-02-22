@@ -155,6 +155,16 @@ class TopicItem(WikibaseRestItem):
             raise WikibaseRestApiError(f"got {response.status_code} from Wikibase")
 
     @lru_cache
+    def get_description(self) -> str:
+        """This is slow"""
+        url = f"{self.base_url}/entities/items/{self.qid}/descriptions"
+        response = self.session.get(url, headers=self.headers)
+        if response.status_code == 200:
+            return response.json().get(self.lang, "")
+        else:
+            raise WikibaseRestApiError(f"got {response.status_code} from Wikibase")
+
+    @lru_cache
     def get_aliases(self) -> list[str]:
         """This is slow"""
         url = f"{self.base_url}/entities/items/{self.qid}/aliases"

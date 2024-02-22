@@ -279,9 +279,12 @@ def term() -> ResponseReturnValue:
                 )
                 label = topic.get_label()
                 logger.info(f"label cache: {topic.get_label.cache_info()}")
+                description = topic.get_description()
+                logger.info(f"description cache: {topic.get_description.cache_info()}")
                 return render_template(
                     "term.html",
                     label=label,
+                    description=description,
                     qid=qid,
                     limit=limit,
                     cs=cs,
@@ -376,6 +379,8 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     logger.info(f"Results time: {execution_time} seconds")
     label = results.parameters.topic.get_label()
     logger.info(f"label cache: {results.parameters.topic.get_label.cache_info()}")
+    description = topic.get_description()
+    logger.info(f"description cache: {topic.get_description.cache_info()}")
     return render_template(
         ["results.html"],
         queries=results.get_query_html_rows(),
@@ -383,6 +388,7 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
         article_rows=results.get_item_html_rows(),
         qid=qid,
         label=label,
+        description=description,
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,

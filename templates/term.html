@@ -33,9 +33,9 @@
         </div>
     </div>
     <!-- Multi-step progress bar end -->
-    <h1>Working on {{ label }}, {{ qid }}</h1>
-    {% include 'goto.html' %}
     <div class="row">
+        {% include 'working_on.html' %}
+        {% include 'goto.html' %}
         <form action="/results" method="get">
             <input type="hidden" name="lang" value="{{ lang }}">
             <input type="hidden" name="subgraph" value="{{ subgraph }}">
