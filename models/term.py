@@ -29,8 +29,12 @@ class Term(BaseModel):
         logger.debug(f"preparing: {self.string}")
         self.lower()
         self.remove_dashes()
+        self.escape_single_quotes()
         # logger.debug(f"result: {self.string}")
         return self
+
+    def escape_single_quotes(self):
+        self.string = self.string.replace("'", "'")
 
     def remove_dashes(self):
         self.string = self.string.replace("-", " ")
@@ -44,9 +48,9 @@ class Term(BaseModel):
 
     @property
     def row_html(self) -> str:
-        logger.debug(
-            f"building html for term '{self.string}' with source '{self.source.value}'"
-        )
+        # logger.debug(
+        #     f"building html for term '{self.string}' with source '{self.source.value}'"
+        # )
         return f"""
         <tr>
             <td>

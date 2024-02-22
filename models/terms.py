@@ -1,6 +1,5 @@
 import logging
 from copy import deepcopy
-from pprint import pprint
 
 from pydantic import BaseModel
 
@@ -22,7 +21,7 @@ class Terms(BaseModel):
         search_terms = [term.prepared_term() for term in search_terms]
         # Remove duplicates and maintain order
         term_set = set(search_terms)
-        pprint(term_set)
+        # pprint(term_set)
         # logger.debug(f"length after duplicate removal: {len(term_set)}")
         self.search_terms = term_set
         logger.debug(
@@ -41,12 +40,14 @@ class Terms(BaseModel):
         all_terms = Terms()
         if topic is not None:
             logger.debug("got topic")
-            label = Term(string=topic.label, source=Source.LABEL)
+            label = Term(string=topic.get_label(), source=Source.LABEL)
+            logger.info(f"label cache: {topic.get_label.cache_info()}")
             all_terms.search_terms.add(label)
             logger.debug(f"added label: {label.string}")
-            for term in topic.aliases:
+            for term in topic.get_aliases():
                 alias = Term(string=term, source=Source.ALIAS)
                 all_terms.search_terms.add(alias)
+            logger.info(f"aliases cache: {topic.get_aliases.cache_info()}")
         else:
             logger.debug("got no topic")
         for user_term in self.search_terms:

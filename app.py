@@ -1,7 +1,9 @@
 import logging
 import os
+import time
 from urllib.parse import quote, unquote
 
+import requests
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
 from markupsafe import Markup, escape
@@ -14,7 +16,7 @@ from models.topic_item import TopicItem
 from models.topicparameters import TopicParameters
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 invalid_format = "Not a valid QID, format must be 'Q[0-9]+'"
@@ -204,20 +206,26 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
     if not qid:
         return jsonify("Error: Got no QID")
     else:
-        topic = TopicItem(qid=qid, lang=lang)
+        topic = TopicItem(qid=qid, lang=lang, session=requests.session())
         if not topic.is_valid:
             return jsonify(error=invalid_format), 400
         else:
-            logger.debug("getting subclass of")
-            subtopics = topic.get_subtopics_as_topic_items
-            logger.debug(f"got subtopics: {subtopics}")
+            logger.debug("getting subtopics")
+            subtopics = topic.get_subtopics_as_topic_items()
+            logger.info(
+                f"subtopic cache: {topic.get_subtopics_as_topic_items.cache_info()}"
+            )
+            # logger.debug(f"got subtopics: {subtopics}")
             subtopics_html_list = []
             for subtopic in subtopics:
                 subtopics_html_list.append(subtopic.row_html(subgraph=subgraph))
+                logger.info(f"row html cache: {subtopic.row_html.cache_info()}")
             subtopic_html = "\n".join(subtopics_html_list)
+            label = topic.get_label()
+            logger.info(f"label cache: {topic.get_label.cache_info()}")
             return render_template(
                 "subclass_of.html",
-                label=topic.label,
+                label=label,
                 qid=qid,
                 lang=lang,
                 subgraph=subgraph.value,
@@ -254,28 +262,26 @@ def term() -> ResponseReturnValue:
             return jsonify(error=invalid_format), 400
         else:
             logger.debug("got valid qid, checking subclass of")
-            has_subclass_of = True
-            if not subclass_of_matched:
-                subtopics = topic.get_subtopics_as_topic_items
-                # pprint(subtopics)
-                if subtopics:
-                    logger.debug("we found subtopics. redirecting")
-                    # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
-                    return redirect(
-                        url_for(
-                            "check_subclass_of", qid=qid, lang=lang, subgraph=subgraph
-                        ),
-                        302,
-                    )
-                else:
-                    has_subclass_of = False
-            if subclass_of_matched or not has_subclass_of:
+            has_subtopic = topic.get_subtopics_as_topic_items()
+            logger.info(
+                f"subtopic cache: {topic.get_subtopics_as_topic_items.cache_info()}"
+            )
+            if not subclass_of_matched and has_subtopic:
+                logger.debug("we found subtopics. redirecting")
+                # see https://stackoverflow.com/questions/17057191/redirect-while-passing-arguments
+                return redirect(
+                    url_for("check_subclass_of", qid=qid, lang=lang, subgraph=subgraph),
+                    302,
+                )
+            if subclass_of_matched or not has_subtopic:
                 logger.debug(
                     "Found no subclass of this topic or the user says they are already matched"
                 )
+                label = topic.get_label()
+                logger.info(f"label cache: {topic.get_label.cache_info()}")
                 return render_template(
                     "term.html",
-                    label=topic.label,
+                    label=label,
                     qid=qid,
                     limit=limit,
                     cs=cs,
@@ -343,13 +349,15 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
         return jsonify(invalid_format)
-    if topic.label is None or not topic.label:
-        # avoid hardcoding english here
+    if not topic.get_label():
         return jsonify(
             f"topic label was empty, please go add an "
-            f"english label in Wikidata. See {topic.url}"
+            f"label for language with language code {lang} "
+            f"in Wikidata. See {topic.url}"
         )
     # Call the GetArticles function with the provided variables
+    # Start measuring execution time
+    start_time = time.time()
     results = Results(
         parameters=TopicParameters(
             topic=topic,
@@ -363,15 +371,18 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
     )
     # Run the queries
     results.get_items()
-    # todo propagate all parameters so we can increase
-    #  the limit with a single click
+    # Calculate execution time
+    execution_time = time.time() - start_time
+    logger.info(f"Results time: {execution_time} seconds")
+    label = results.parameters.topic.get_label()
+    logger.info(f"label cache: {results.parameters.topic.get_label.cache_info()}")
     return render_template(
         ["results.html"],
         queries=results.get_query_html_rows(),
         item_count=results.number_of_deduplicated_items,
         article_rows=results.get_item_html_rows(),
         qid=qid,
-        label=results.parameters.topic.label,
+        label=label,
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,
@@ -421,4 +432,4 @@ def add_main_subject() -> ResponseReturnValue:  # dead:disable
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(debug=True, host="0.0.0.0", port=port)

@@ -34,7 +34,7 @@
     </div>
     <!-- Multi-step progress bar end -->
     <h1>Working on {{ label }}, {{ qid }}</h1>
-    <p>Go to <a href="https://www.wikidata.org/wiki/{{ qid }}">Wikidata</a> | <a href="https://scholia.toolforge.org/topic/{{ qid }}">Scholia</a>.</p>
+    {% include 'goto.html' %}
     <div class="row">
         <form action="/results" method="get">
             <input type="hidden" name="lang" value="{{ lang }}">
