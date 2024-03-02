@@ -125,7 +125,7 @@ max-complexity = 11
 
 [tool.ruff.per-file-ignores]
 # We intentionally use 0.0.0.0
-"app.py" = ["S104"]
+#"debug.py" = ["S104"]
 # Ignore SQL injection warning
 "published_article_query.py" = ["S608"]
 
