@@ -1,5 +1,4 @@
 FROM python:3.11-slim
-#FROM python:3.11
 
 LABEL maintainer="Dennis Priskorn <priskorn@riseup.net>"
 
@@ -9,10 +8,6 @@ WORKDIR /app
 
 COPY pyproject.toml .
 
-# RUN pip install --no-cache-dir --upgrade pip && \
-#     pip install --no-cache-dir poetry && \
-#     poetry install
-
 RUN pip install --no-cache-dir poetry==1.7.1 && poetry config virtualenvs.create false
 
 COPY pyproject.toml .
@@ -21,6 +16,7 @@ COPY pyproject.toml .
 RUN poetry install --no-interaction --no-ansi --without=dev
 
 COPY . ./
+RUN cp config_example.py config.py
 
 # configure the container to run in an executed manner (debug only)
 # ENTRYPOINT [ "python" ]

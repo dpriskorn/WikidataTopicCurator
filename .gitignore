@@ -4,3 +4,4 @@ models/__pycache__/
 .idea/
 venv/
 .venv/
+/config.py

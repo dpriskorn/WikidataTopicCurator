@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from urllib.parse import quote, unquote
 
@@ -8,6 +7,7 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
 from markupsafe import Markup, escape
 
+import config
 from models.enums import Source, Subgraph
 from models.results import Results
 from models.term import Term
@@ -26,7 +26,6 @@ invalid_format = "Not a valid QID, format must be 'Q[0-9]+'"
 #     email="User:So9q",
 # )
 user_agent = "topic-curator (https://github.com/dpriskorn/WikidataTopicCurator/; User:So9q) python-requests/2.31.0"
-default_limit = 8000
 documentation_url = (
     "https://www.wikidata.org/wiki/Wikidata:Tools/Wikidata_Topic_Curator"
 )
@@ -242,7 +241,7 @@ def term() -> ResponseReturnValue:
     lang = escape(request.args.get("lang", ""))
     subgraph = escape(request.args.get("subgraph", ""))
     qid = escape(request.args.get("qid", ""))
-    limit = escape(request.args.get("limit", default_limit))
+    limit = escape(request.args.get("limit", config.default_limit))
     cs = escape(request.args.get("cs", ""))
     csa = escape(request.args.get("csa", ""))
     raw_terms = request.args.getlist("terms")
@@ -292,7 +291,7 @@ def term() -> ResponseReturnValue:
                     terms_html=user_terms.get_terms_html(topic=topic),
                     subgraph=subgraph,
                     lang=lang,
-                    default_limit=default_limit,
+                    default_limit=config.default_limit,
                 )
             else:
                 raise NotImplementedError("this should never be reached")
@@ -312,7 +311,7 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
             return jsonify(
                 "Error: The language code is more than 3 chars which not valid."
             )
-    limit_param = escape(request.args.get("limit", default_limit))
+    limit_param = escape(request.args.get("limit", config.default_limit))
     raw_subgraph = escape(request.args.get("subgraph", ""))
     if not raw_subgraph:
         # default subgraph
@@ -347,7 +346,7 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
             return jsonify(error="Limit must be an integer."), 400
     else:
         # Default to 50
-        limit = default_limit
+        limit = config.default_limit
     topic = TopicItem(qid=qid, lang=lang)
     if not topic.is_valid:
         logger.debug(f"Invalid qid {topic.model_dump()}")
@@ -434,8 +433,3 @@ def add_main_subject() -> ResponseReturnValue:  # dead:disable
         return jsonify("Error: No QIDs selected.")
     else:
         return jsonify("Error: Got no POST request")
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
