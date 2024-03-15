@@ -93,7 +93,7 @@ class Query(TopicCuratorBaseModel):
         # This query also uses the https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI
         # which has a hardcoded limit of 10,000 items so you will never get more matches than that
         logger.debug(
-            f"using cirrussearch_string: '{self.cirrussearch.cirrussearch_string}"
+            f"using cirrussearch_string: '{self.cirrussearch.escaped_cirrussearch_string}"
         )
         return f"""
             #{self.user_agent}
@@ -103,7 +103,7 @@ class Query(TopicCuratorBaseModel):
              as ?full_resources)
             WHERE {{
               hint:Query hint:optimizer "None".
-              BIND(STR('{self.cirrussearch.cirrussearch_string}') as ?search_string)
+              BIND(STR('{self.cirrussearch.escaped_cirrussearch_string}') as ?search_string)
               SERVICE wikibase:mwapi {{
                 bd:serviceParam wikibase:api "Search";
                                 wikibase:endpoint "www.wikidata.org";

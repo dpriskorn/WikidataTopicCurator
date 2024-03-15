@@ -53,10 +53,26 @@ class CirrusSearch(BaseModel):
             return self.prefix_from_config[self.subgraph.value].format(self.topic.qid)
 
     @property
+    def escaped_cirrussearch_string(self) -> str:
+        """We build a search for the exact term by using quotes around the term
+        The term must be in the label and is quoted to be found in full"""
+        # We escape quotes here to avoid 400s from the query service
+        return (
+            f"{self.escape_quotes(self.build_prefix)} "
+            f'inlabel:"{self.escape_quotes(self.term.string)}" '
+            f"{self.escape_quotes(self.affix)}"
+        )
+
+    @property
     def cirrussearch_string(self) -> str:
         """We build a search for the exact term by using quotes around the term
         The term must be in the label and is quoted to be found in full"""
         return f'{self.build_prefix} inlabel:"{self.term.string}" {self.affix}'
+
+    @staticmethod
+    def escape_quotes(string: str) -> str:
+        """Escape both types of quotes we use in the query string"""
+        return string.replace("'", "\\'").replace('"', '\\"')
 
     @lru_cache
     def cirrussearch_total(self) -> int:
