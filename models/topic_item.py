@@ -117,7 +117,7 @@ class TopicItem(WikibaseRestItem):
         if not subgraph:
             raise ValueError("subgraph missing")
         # logger.debug(f"Building row html for {self.qid}")
-        match_url = f"/term?lang={self.lang}&qid={self.qid}&subgraph={subgraph.value}"
+        match_url = f"/terms?lang={self.lang}&qid={self.qid}&subgraph={subgraph.value}"
         # from models.cirrussearch import CirrusSearch
         #
         # cirrussearch = CirrusSearch(

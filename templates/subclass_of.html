@@ -32,7 +32,7 @@
     <div class="row">
         <h1>Subtopics of {{ label }}, {{ qid }}</h1>
         {% include 'goto.html' %}
-        <form action="/term" method="get" onsubmit="return validateForm()">
+        <form action="/terms" method="get" onsubmit="return validateForm()">
         <input type="hidden" name="subclass_of_matched" value="true">
         <input type="hidden" name="qid" value="{{ qid }}">
         <input type="hidden" name="lang" value="{{ lang }}">
