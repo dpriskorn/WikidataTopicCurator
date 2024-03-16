@@ -232,7 +232,7 @@ def check_subclass_of() -> ResponseReturnValue:  # dead:disable
             )
 
 
-@app.route("/term", methods=["GET"])
+@app.route("/terms", methods=["GET"])
 def term() -> ResponseReturnValue:
     """We either get a get request or a post request
     If we get arguments, prefill the template
@@ -281,7 +281,7 @@ def term() -> ResponseReturnValue:
                 description = topic.get_description()
                 logger.info(f"description cache: {topic.get_description.cache_info()}")
                 return render_template(
-                    "term.html",
+                    "terms.html",
                     label=label,
                     description=description,
                     qid=qid,
@@ -391,6 +391,7 @@ def results() -> ResponseReturnValue:  # noqa: C901, PLR0911, PLR0912
         link=topic.url,
         lang=lang,
         subgraph=subgraph.value,
+        limit=limit,
     )
 
 
