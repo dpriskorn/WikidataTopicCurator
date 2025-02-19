@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class TopicCuratorBaseModel(BaseModel):
-    base_url: str = "https://www.wikidata.org/w/rest.php/wikibase/v0"
+    base_url: str = "https://www.wikidata.org/w/rest.php/wikibase/v1"
 
     @property
     def user_agent(self):
