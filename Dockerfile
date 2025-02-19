@@ -1,6 +1,6 @@
-FROM python:3.11-slim
+FROM python:3.13.2-alpine3.21
 
-LABEL maintainer="Dennis Priskorn <priskorn@riseup.net>"
+LABEL maintainer="Nizo Priskorn <nizo.priskorn@gmail.com>"
 
 ENV DOCKER=true
 
@@ -8,7 +8,8 @@ WORKDIR /app
 
 COPY pyproject.toml .
 
-RUN pip install --no-cache-dir poetry==1.7.1 && poetry config virtualenvs.create false
+# why was there a specific poetry version here?
+RUN pip install --no-cache-dir poetry && poetry config virtualenvs.create false
 
 COPY pyproject.toml .
 
