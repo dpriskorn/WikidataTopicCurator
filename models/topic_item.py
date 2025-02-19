@@ -152,7 +152,9 @@ class TopicItem(WikibaseRestItem):
         if response.status_code == 200:
             return response.json().get(self.lang, "")
         else:
-            raise WikibaseRestApiError(f"got {response.status_code} from Wikibase")
+            raise WikibaseRestApiError(
+                f"got {response.status_code} from Wikibase at {url}"
+            )
 
     @lru_cache
     def get_description(self) -> str:
