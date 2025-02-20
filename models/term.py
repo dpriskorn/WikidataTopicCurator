@@ -11,9 +11,6 @@ class Term(BaseModel):
     """This model handles everything related to a term
     Escaping, cleaning, lowercasing, etc.
 
-    We choose not to include the source information here
-    because it is only used in one view/page at the moment
-
     We don't consider the source when comparing terms"""
 
     string: str

@@ -1,4 +1,8 @@
+import re
+
 from pydantic import BaseModel, Field
+
+from models.term import Term
 
 
 class SparqlItem(BaseModel):
@@ -10,12 +14,42 @@ class SparqlItem(BaseModel):
     publication_label: str = Field(default="No label found")
     doi: str = ""
     raw_full_resources: str = ""
+    term: Term
+    cleaned_item_label: str = ""
 
     def __hash__(self):
         return hash(self.qid)
 
     def __eq__(self, other):
         return self.qid == other.qid
+
+    def clean_item_label(self):
+        print("cleaning")
+        self.cleaned_item_label = self.item_label
+        self.escape_single_quotes()
+        self.remove_dashes()
+
+    def escape_single_quotes(self):
+        self.cleaned_item_label = self.cleaned_item_label.replace("'", "'")
+
+    def remove_dashes(self):
+        self.cleaned_item_label = self.cleaned_item_label.replace("-", " ").strip()
+
+    @property
+    def highlighted_item_label(self) -> str:
+        if self.item_label != "No label found":
+            self.clean_item_label()
+            # inspired by https://stackoverflow.com/questions/68200973/highlight-multiple-substrings-in-a-string-in-python
+            highlight_list = [self.term.string]
+            highlight_str = r"\b(?:" + "|".join(highlight_list) + r")\b"
+            replace_str = "<mark>\\g<0></mark>"
+            text_highlight = re.sub(
+                highlight_str, replace_str, self.cleaned_item_label, flags=re.IGNORECASE
+            )
+            print(text_highlight)
+            return text_highlight
+        else:
+            return self.item_label
 
     @property
     def qid_uri(self) -> str:
@@ -38,7 +72,7 @@ class SparqlItem(BaseModel):
                         <label class="form-check-label" for="checkbox1"></label>
                     </div>
                 </td>
-                <td><a href="{ self.qid_uri }" target="_blank">{ self.item_label }</a></td>
+                <td><a href="{ self.qid_uri }" target="_blank">{ self.highlighted_item_label }</a></td>
                 <td>{ self.instance_of_label }</td>
                 <td>{ self.publication_label }</td>
                 <td><a href="{ self.doi_url }" target="_blank">{ self.doi }</a></td>
