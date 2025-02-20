@@ -1,3 +1,5 @@
+import logging
+from json import JSONDecodeError
 from typing import Any
 
 import requests
@@ -6,6 +8,8 @@ from requests import Session
 
 from models.exceptions import QleverError
 from models.topic_curator_base_model import TopicCuratorBaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class QleverIntegrator(TopicCuratorBaseModel):
@@ -36,4 +40,22 @@ class QleverIntegrator(TopicCuratorBaseModel):
             raise QleverError(
                 "ConnectionError"
             ) from requests.exceptions.ConnectionError
-        return response.json()
+        if len(response.text) > 0:
+            return response.json()
+        else:
+            # Try again
+            try:
+                response = self.session.get(
+                    self.endpoint,
+                    params=params,
+                    headers=self.headers,
+                )
+            except requests.exceptions.ConnectionError:
+                raise QleverError(
+                    "ConnectionError"
+                ) from requests.exceptions.ConnectionError
+            try:
+                return response.json()
+            except JSONDecodeError:
+                # todo tell the user to refresh because of an intermittent error that persists
+                raise QleverError("Got no data from QLever endpoint") from None
