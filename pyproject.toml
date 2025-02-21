@@ -127,6 +127,10 @@ max-complexity = 11
 #"debug.py" = ["S104"]
 # Ignore SQL injection warning
 "published_article_query.py" = ["S608"]
+"tests/*.py" = ["S101"]
+
+#[lint.per-file-ignores]
+#"tests/*.py" = ["S101"]
 
 [build-system]
 requires = ["poetry-core"]

@@ -56,6 +56,8 @@ class Query(TopicCuratorBaseModel):
                 publication_label=item_json.get("publicationLabel_value", ""),
                 doi=item_json.get("doi_id_value", ""),
                 raw_full_resources=item_json.get("full_resources_value", ""),
+                # propagate term to enable highlighting
+                term=self.term,
             )
             # pprint(item.model_dump())
             items.append(item)
