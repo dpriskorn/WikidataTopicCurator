@@ -24,6 +24,7 @@ uvicorn = "^0.34.0"
 flatten-json = "^0.1.14"
 httpx = "^0.28.1"
 hishel = "^0.1.1"
+tenacity = "^9.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
