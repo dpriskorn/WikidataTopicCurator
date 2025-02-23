@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from pydantic import BaseModel, Field
 from requests import Session
@@ -72,12 +71,12 @@ class Revisions(BaseModel):
         return False
 
     @property
-    def has_been_removed(self):
+    def has_been_removed(self):  # dead: disable
         # todo check if a user removed it without using the undo function
         pass
 
     @property
-    def has_been_undone_or_removed(self):
+    def has_been_undone_or_removed(self):  # dead: disable
         # todo meta method
         pass
 

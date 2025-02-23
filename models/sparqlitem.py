@@ -2,6 +2,7 @@ import re
 
 from pydantic import BaseModel, Field
 
+from deprecated.mediawiki import Revisions
 from models.term import Term
 
 
@@ -103,3 +104,9 @@ class SparqlItem(BaseModel):
         for link in self.full_resources:
             html.append(f'<a href="{link}">Link</a>')
         return ", ".join(html)
+
+    @property
+    def has_been_undone(self) -> bool:
+        revs = Revisions(item_qid="Q58505344", subject_qid="Q6279182")
+        revs.fetch_revisions()
+        return revs.has_been_undone

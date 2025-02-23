@@ -176,6 +176,16 @@ class TopicItem(WikibaseRestItem):
         else:
             raise WikibaseRestApiError(f"got {response.status_code} from Wikibase")
 
+    @lru_cache
+    def json_(self) -> dict[str, Any]:
+        """Exports the data in row_html as a JSON dictionary."""
+        return {
+            "qid": self.qid,
+            "url": self.url,
+            "label": self.label,
+            "description": self.description,
+        }
+
     # @property
     # def get_description(self) -> str:
     #     url = f"{self.endpoint_url}/entities/items/{self.qid}/descriptions"

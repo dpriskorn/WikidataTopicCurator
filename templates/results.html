@@ -45,6 +45,7 @@
             {{ queries | safe }}
         </table>
         <p>Deduplicated results below: {{item_count}}</p>
+        <p>Excluded results below: {{excluded_item_count}}</p>
     </div>
     <div class="row">
         <h2>Results</h2>
@@ -76,6 +77,26 @@
             <p><input type="checkbox" id="checkAll"> Check all checkboxes</p>
             <button type="submit" class="btn btn-primary mt-3">Send to QuickStatements</button>
         </form>
+    </div>
+    <div class="row">
+        <h2>Excluded results that has been undone according to the revision history</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+
+                    <th scope="col">Number</th>
+                    <th scope="col">Label</th>
+                    <th scope="col">Instance of (P31)</th>
+                    <th scope="col">Publication</th>
+                    <th scope="col">DOI</th>
+                    <th scope="col">Link to full resource</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ excluded_article_rows | safe }}
+                <!-- Add more rows as needed -->
+            </tbody>
+        </table>
     </div>
 </main>
 

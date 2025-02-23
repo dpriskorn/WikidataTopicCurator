@@ -1,4 +1,4 @@
-from models.mediawiki.revisions import Revisions
+from deprecated.mediawiki import Revisions
 
 
 class TestRevisions:

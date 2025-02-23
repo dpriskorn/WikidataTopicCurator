@@ -71,15 +71,55 @@ class Results(BaseModel):
         return set(items)
 
     @property
+    def excluded_items(self) -> set[SparqlItem]:
+        """We deduplicate the items here and return a set"""
+        logger.info("excluded_items: running")
+        items = []
+        item_count = 1
+        query_count = 1
+        for query in self.queries:
+            logger.info(f"working on {query_count} out of {len(self.queries)}")
+            for item in query.items:
+                logger.info(f"working on {item_count} out of {len(query.items)}")
+                if item.has_been_undone:
+                    items.append(item)
+                item_count += 1
+            query_count += 1
+        return set(items)
+
+    @property
     def number_of_deduplicated_items(self):
         return len(self.all_items)
 
-    def get_item_html_rows(self):
+    @property
+    def number_of_excluded_items(self):
+        return len(self.excluded_items)
+
+    def get_excluded_item_suggestion_html_rows(self):
+        """This returns all suggestions that has been undone before"""
+        logger.info("get_excluded_item_suggestion_html_rows: running")
+        count = 1
+        html_list = []
+        for item in self.excluded_items:
+            logger.info(f"working on {count} out of {self.number_of_excluded_items}")
+            if item.has_been_undone:
+                html_list.append(item.row_html(count=count))
+                count += 1
+        html = "\n".join(html_list)
+        return html
+
+    def get_item_suggestion_html_rows(self):
+        """This returns all suggestions that has not been undone before"""
+        logger.info("get_item_suggestion_html_rows: running")
         count = 1
         html_list = []
         for item in self.all_items:
-            html_list.append(item.row_html(count=count))
-            count += 1
+            logger.info(
+                f"working on {count} out of {self.number_of_deduplicated_items}"
+            )
+            if not item.has_been_undone:
+                html_list.append(item.row_html(count=count))
+                count += 1
         html = "\n".join(html_list)
         return html
 
