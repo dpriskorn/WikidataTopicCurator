@@ -9,7 +9,12 @@ from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from hishel import AsyncCacheTransport, AsyncFileStorage
 from starlette.middleware.cors import CORSMiddleware
-from tenacity import wait_exponential, stop_after_attempt, retry_if_exception_type, retry
+from tenacity import (
+    wait_exponential,
+    stop_after_attempt,
+    retry_if_exception_type,
+    retry,
+)
 
 from models.subtopics import Subtopics
 
@@ -19,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 # FastAPI
 app = FastAPI()
-router = APIRouter(prefix="/v0")  # Adds /v0/ to all endpoints
 # Allow all origins (you can restrict this to just your frontend)
 app.add_middleware(
     CORSMiddleware,
@@ -29,9 +33,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 documentation_url = ""  # todo add documentation_url
+router = APIRouter(prefix="/v0")  # Adds /v0/ to all endpoints
 
 
-@app.get("/subtopics")
+@router.get("/subtopics")
 def subtopics(
     lang: str = Query("en", alias="lang"),
     qid: str = Query("", alias="qid"),
@@ -44,15 +49,15 @@ def subtopics(
     if not lang:
         return JSONResponse(content={"error": "Got no language code"}, status_code=400)
     else:
-        subtopics_ = Subtopics(
+        topics = Subtopics(
             qid=qid,
             lang=lang,
         )
-        subtopics_.fetch_and_parse()
+        topics.fetch_and_parse()
         return JSONResponse(
             content={
                 "message": "Success",
-                "subtopics": subtopics.subtopics_json,
+                "subtopics": topics.subtopics_json,
                 "lang": lang,
                 "qid": qid,
             }
@@ -61,11 +66,13 @@ def subtopics(
 
 # Initialize an asynchronous file-based cache
 storage = AsyncFileStorage(
-    base_path=Path(".cache",
-                   ttl=timedelta(
-                       hours=1
-                       #seconds=5
-                   ).total_seconds())
+    base_path=Path(
+        ".cache",
+        ttl=timedelta(
+            hours=1
+            # seconds=5
+        ).total_seconds(),
+    )
 )  # Use AsyncFileStorage for async compatibility
 
 # Create an HTTPX AsyncTransport (default transport)
@@ -80,9 +87,13 @@ semaphore = asyncio.Semaphore(10)  # Limit to 10 concurrent requests
 
 # Retry configuration for the proxy server
 @retry(
-    wait=wait_exponential(multiplier=1, min=1, max=10),  # Exponential backoff (1s, 2s, 4s, ...)
+    wait=wait_exponential(
+        multiplier=1, min=1, max=10
+    ),  # Exponential backoff (1s, 2s, 4s, ...)
     stop=stop_after_attempt(3),  # Stop after 5 attempts
-    retry=retry_if_exception_type((httpx.HTTPStatusError, ValueError)),  # Retry on HTTP errors or invalid response
+    retry=retry_if_exception_type(
+        (httpx.HTTPStatusError, ValueError)
+    ),  # Retry on HTTP errors or invalid response
 )
 async def fetch_wikidata_data(client, srsearch):
     """
@@ -110,8 +121,10 @@ async def fetch_wikidata_data(client, srsearch):
     return response.json()
 
 
-@app.get("/api/wikidata")
-async def wikidata_proxy(srsearch: str = Query(..., description="Search query for Wikidata")):
+@router.get("/api/wikidata")
+async def wikidata_proxy(
+    srsearch: str = Query(..., description="Search query for Wikidata")
+):
     try:
         logger.debug(f"Received request with srsearch: {srsearch}")
 
@@ -130,3 +143,5 @@ async def wikidata_proxy(srsearch: str = Query(..., description="Search query fo
         # Log other errors
         logger.error(f"An error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+app.include_router(router)
