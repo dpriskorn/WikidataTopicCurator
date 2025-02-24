@@ -36,6 +36,11 @@ documentation_url = ""  # todo add documentation_url
 router = APIRouter(prefix="/v0")  # Adds /v0/ to all endpoints
 
 
+@router.get("/health")
+async def health_check():
+    return JSONResponse(content={"status": "ok"})
+
+
 @router.get("/subtopics")
 def subtopics(
     lang: str = Query("en", alias="lang"),
