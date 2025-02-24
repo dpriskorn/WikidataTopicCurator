@@ -76,16 +76,21 @@ class Subtopics(BaseModel):
             data = flatten_json(result)
             # pprint(data)
             # exit()
+            label_missing = False
+            if data.get("itemLabel_value") is None:
+                label_missing = True
             self.subtopics.append(
                 WikibaseRestItem(
                     lang=self.lang,
                     qid=data.get("item_value").split("/")[-1],
                     label=data.get(
-                        "itemLabel_value", "Label missing in this language, please fix"
+                        "itemLabel_value",
+                        "Label is missing in this language, please fix",
                     ),
+                    label_missing=label_missing,
                     description=data.get(
                         "itemDescription_value",
-                        "Description missing in this language, please fix",
+                        "Description is missing in this language, please fix",
                     ),
                 )
             )

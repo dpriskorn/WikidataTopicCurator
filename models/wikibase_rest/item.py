@@ -11,6 +11,7 @@ class WikibaseRestItem(TopicCuratorBaseModel):
     label: str = ""
     description: str = ""
     aliases: list[str] = []
+    label_missing: bool
     model_config = ConfigDict(extra="forbid")  # dead:disable
 
     # @property
