@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class Query(TopicCuratorBaseModel):
-    """We need a search_string and the parameters"""
+    """This class takes a language, search_string and
+    parameters and execute the sparql query using QLever"""
 
     lang: str
     term: Term
@@ -131,16 +132,6 @@ class Query(TopicCuratorBaseModel):
             GROUP BY ?item ?itemLabel ?instance_ofLabel ?publicationLabel ?doi_id
             LIMIT {self.calculated_limit}
         """
-
-    # @property
-    # def get_everywhere_google_results(self) -> int:
-    #     gs = GoogleScholarSearch(term=self.term)
-    #     return gs.everywhere_total_results
-    #
-    # @property
-    # def get_in_title_google_results(self) -> int:
-    #     gs = GoogleScholarSearch(term=self.term)
-    #     return gs.in_title_total_results
 
     @property
     def get_in_title_google_url(self) -> str:

@@ -36,21 +36,6 @@ class SparqlItem(BaseModel):
     def remove_dashes(self):
         self.cleaned_item_label = self.cleaned_item_label.replace("-", " ").strip()
 
-    @property
-    def highlighted_item_label(self) -> str:
-        if self.item_label != "No label found":
-            self.clean_item_label()
-            # inspired by https://stackoverflow.com/questions/68200973/highlight-multiple-substrings-in-a-string-in-python
-            highlight_list = [self.term.string]
-            highlight_str = r"\b(?:" + "|".join(highlight_list) + r")\b"
-            replace_str = "<mark>\\g<0></mark>"
-            text_highlight = re.sub(
-                highlight_str, replace_str, self.cleaned_item_label, flags=re.IGNORECASE
-            )
-            print(text_highlight)
-            return text_highlight
-        else:
-            return self.item_label
 
     @property
     def qid_uri(self) -> str:

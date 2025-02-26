@@ -22,10 +22,20 @@ requests = "^2.31.0"
 fastapi = "^0.115.8"
 uvicorn = "^0.34.0"
 flatten-json = "^0.1.14"
-httpx = "^0.28.1"
-hishel = "^0.1.1"
-tenacity = "^9.0.0"
+httpx = "^0.28.1" # async http
+hishel = "^0.1.1" # async cache
+tenacity = "^9.0.0" # retry decorator
 
+# for tracing
+prometheus-fastapi-instrumentator = "^7.0.2"
+opentelemetry-api = "^1.30.0"
+opentelemetry-sdk = "^1.30.0"
+opentelemetry-instrumentation-fastapi = "^0.51b0"
+opentelemetry-instrumentation-requests = "^0.51b0"
+opentelemetry-exporter-otlp = "^1.30.0"
+
+# for lifespan event handler
+anyio = "^4.8.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12.1"
