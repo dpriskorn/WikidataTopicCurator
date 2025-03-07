@@ -1,3 +1,4 @@
+***This app has been deprecated and archived in favor of [a React + Vite rewrite](https://github.com/dpriskorn/topic-creator-frontend/) which works way faster and can be hosted in Toolforge.***
 # Wikidata Topic Curator
 This is a simplified rewrite of ItemSubjector into a webapp 
 to help wikimedians curate scientific articles with topics.
